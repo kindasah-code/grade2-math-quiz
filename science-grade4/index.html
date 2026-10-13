@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14564c">
+<meta name="description" content="مذكرة العلوم التفاعلية للصف الرابع الابتدائي – الوحدة الأولى: المخلوقات الحية، شرح مصور بخمسة دروس وبطاقات مراجعة واختبار من 25 سؤالًا مع تصحيح فوري.">
+<title>رحلة العلوم | المخلوقات الحية – رابع ابتدائي</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2314564c'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='39'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="./styles.css">
+<script defer src="./app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">تخطَّ إلى المحتوى</a>
+<div class="app-shell">
+<header class="topbar">
+  <a class="brand" href="./" aria-label="رحلة العلوم، العودة إلى البداية">
+    <span class="brand-mark" aria-hidden="true">✳</span>
+    <span>رحلة العلوم <small>نفهم الطبيعة حولنا</small></span>
+  </a>
+  <nav class="main-tabs" aria-label="أقسام الموقع">
+    <button class="tab is-active" type="button" data-view="learn" aria-current="page">📖 المذكرة</button>
+    <button class="tab" type="button" data-view="cards">🗂️ بطاقات المراجعة</button>
+    <button class="tab" type="button" data-view="quiz">✍️ الاختبار</button>
+  </nav>
+</header>
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <span class="eyebrow"><span class="pulse-dot"></span> علوم · الصف الرابع الابتدائي · الجزء الأول</span>
+    <h1 id="hero-title">الوحدة الأولى<br><em>المخلوقات الحية</em></h1>
+    <p>من الخلية الصغيرة إلى الممالك الست، ثم رحلة ممتعة إلى عالم الحيوانات وأجهزة أجسامها. تعلّم خطوة بخطوة، وجرّب بنفسك!</p>
+    <div class="hero-meta"><span>📚 فصلان</span><span>🔬 ٥ دروس</span><span>🎯 ٢٥ سؤال اختبار</span></div>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+    <span class="planet planet-leaf">🌱</span><span class="planet planet-dna">🧬</span>
+    <span class="planet planet-butterfly">🦋</span><span class="planet planet-fish">🐠</span>
+    <span class="planet planet-frog">🐸</span>
+    <span class="center-orbit">🌍</span>
+  </div>
+</section>
+<div class="progress-strip" aria-label="تقدم المذاكرة">
+  <div class="progress-label"><span>✨ إنجاز الدروس</span><strong id="done-label">٠ من ٥</strong></div>
+  <div class="progress-track"><span class="progress-fill" id="study-progress"></span></div>
+  <p class="progress-hint">أنهِ التحدي الصغير في نهاية كل درس لتسجّل إنجازك.</p>
+</div>
+<section class="study-layout" id="view-learn" aria-label="المذكرة التعليمية">
+  <aside class="study-sidebar">
+    <div class="sidebar-head"><span>خارطة الرحلة</span><small>اختر الدرس</small></div>
+    <div id="lesson-nav" class="lesson-nav"></div>
+    <button class="sidebar-quiz" type="button" data-view="quiz">جاهز للاختبار؟ <span>↗</span></button>
+  </aside>
+  <div class="study-main">
+    <div id="lesson-content" aria-live="polite"></div>
+    <div class="lesson-pagination">
+      <button type="button" id="previous-lesson" class="button ghost">→ الدرس السابق</button>
+      <button type="button" id="next-lesson" class="button primary">الدرس التالي ←</button>
+    </div>
+  </div>
+</section>
+<section id="view-cards" class="standalone" hidden aria-label="بطاقات المراجعة">
+  <div class="section-heading"><span class="chapter-kicker">ذاكرة العلماء</span><h2>بطاقات المراجعة</h2><p>حاول تذكّر معنى المصطلح ثم اضغط البطاقة لكشف الإجابة.</p></div>
+  <div class="flash-grid" id="flash-grid"></div>
+</section>
+<section id="view-quiz" class="standalone" hidden aria-label="الاختبار التفاعلي">
+  <div id="quiz-content"></div>
+</section>
+</main>
+<footer class="footer">
+  <div><strong>🌿 رحلة العلوم</strong><p>مذكرة تعليمية إثرائية مبسطة، أُعدّت لدعم فهم الوحدة الأولى، وليست بديلًا عن كتاب المدرسة.</p></div>
+  <div class="footer-links"><a href="https://sahl.io/sa/lesson/87/" target="_blank" rel="noopener noreferrer">مرجع: تصنيف المخلوقات الحية ↗</a><a href="https://sahl.io/sa/lesson/91/" target="_blank" rel="noopener noreferrer">مرجع: أجهزة أجسام الحيوانات ↗</a><a href="../" target="_blank" rel="noopener noreferrer">اختبار الرياضيات السابق ↗</a></div>
+  <small>الرسومات والأنشطة أصلية • لا تتطلب تسجيل دخول • النتيجة تُحفظ في هذا المتصفح فقط</small>
+</footer>
+</div>
+<noscript><div class="nojs">يرجى تفعيل JavaScript لعرض الدروس التفاعلية والاختبار.</div></noscript>
+</body>
+</html>
