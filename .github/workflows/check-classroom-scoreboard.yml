@@ -1,0 +1,84 @@
+name: Validate classroom leaderboard interactions
+on:
+  push:
+    paths:
+      - '.github/workflows/check-classroom-scoreboard.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Simulate nickname, completion, publish and cross-device read
+        run: |
+          node <<'JS'
+          const assert=require('node:assert/strict');
+          const fs=require('node:fs');
+          const vm=require('node:vm');
+          const src=fs.readFileSync('multiplication/leaderboard.js','utf8');
+          const all=new Map(),server=new Map();
+          class Node {
+           constructor(id){this.id=id;this.value='';this.textContent='';this.disabled=false;this.hidden=false;this.children=[];this.handlers={};this.classList={toggle(){},add(){},remove(){}};}
+           set innerHTML(v){this.html=v}
+           get innerHTML(){return this.html||''}
+           addEventListener(k,fn){this.handlers[k]=fn}
+           appendChild(child){this.children.push(child)}
+           replaceChildren(...x){this.children=x}
+           insertAdjacentElement(){}
+           prepend(){}
+           focus(){}
+           querySelector(sel){if(sel==='.hero'||sel==='.mode-grid')return new Node(sel);return null}
+          }
+          const ids=['home','results','lbNameState','lbNameHint','lbPlayerName','lbCategory','lbLocalCategory','lbRemoteStatus','lbRefresh','lbPublicRows','lbLocalRows','lbResultSummary','lbPublish','lbPublishStatus','lbPublishCard'];
+          for(const id of ids)all.set(id,new Node(id));
+          all.get('lbCategory').value='ch_e0';all.get('lbLocalCategory').value='ch_e0';
+          const document={getElementById:id=>all.get(id)||null,createElement:tag=>new Node(tag),addEventListener(){},hidden:false};
+          let stored={};const localStorage={getItem:key=>stored[key]||null,setItem:(key,value)=>{stored[key]=value}};
+          const window={MasteryGame:{useNickname(){}}};
+          const fetch=async (url,opt={})=>{
+           const parts=String(url).split('/'),method=opt.method||'GET',key=parts[parts.length-1];
+           if(url.includes('/GetValue/')){
+            return {ok:true,status:200,text:async()=>JSON.stringify(server.get(key)||'')};
+           }
+           if(url.includes('/UpdateValue/')){
+            const entryKey=parts[parts.length-2],value=parts[parts.length-1];
+            assert.equal(method,'POST');
+            assert(!opt.headers,'No CORS preflight headers are allowed');
+            server.set(entryKey,value);
+            return {ok:true,status:200,text:async()=> 'true'};
+           }
+           throw Error('Unexpected API request '+url);
+          };
+          const ctx={document,window,localStorage,fetch,TextEncoder,TextDecoder,Uint8Array,btoa,atob,setInterval:()=>0,
+           console,Date,Math,Array,Map,JSON,String,Number,Promise,Error};
+          vm.createContext(ctx);
+          vm.runInContext(src,ctx,{timeout:2000});
+          const api=window.MasteryLeaderboard;
+          assert(api,'Leaderboard API should register');
+          all.get('lbPlayerName').value='أحمد';
+          assert.equal(api.readyToPlay(),true);
+          api.offer({mode:'challenge',difficulty:'easy',seconds:0,correct:13,answered:15,started:Date.now()-40000});
+          assert.equal(all.get('lbPublishCard').hidden,false);
+          const publisher=all.get('lbPublish').handlers.click;
+          assert.equal(typeof publisher,'function');
+          (async()=>{
+           await publisher();
+           assert.equal(server.size,1,'One score shard should be saved remotely');
+           assert(all.get('lbPublishStatus').textContent.includes('نُشرت'),all.get('lbPublishStatus').textContent);
+           assert.equal(all.get('lbCategory').value,'ch_e0');
+           const publicValue=server.values().next().value;
+           const normalized=publicValue.replace(/-/g,'+').replace(/_/g,'/');
+           const data=JSON.parse(Buffer.from(normalized,'base64').toString('utf8'));
+           assert.equal(data[0][0],'أحمد');
+           assert.equal(data[0][1],13);
+           assert.equal(data[0][2],15);
+           assert(data[0][3]>=39&&data[0][3]<=42);
+           // Simulate a second device, using the same URL/board and remote storage.
+           const remoteRows=JSON.parse(Buffer.from(normalized,'base64').toString('utf8'));
+           assert(remoteRows.some(x=>x[0]==='أحمد'&&x[1]===13));
+           console.log('PASS: name -> finish -> publish -> remote retrieval; Arabic intact, duration accurate');
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          JS
