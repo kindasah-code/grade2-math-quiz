@@ -1,14 +1,24 @@
 /* Temporary, anonymous classroom leaderboard. Casual use only; not tamper-proof. */
 (function(){
 "use strict";
-const API="https://superjsonblob.com/api/jsonBlob", KIND="multiplication-class-v1", TTL=48*3600*1000;
+// Both services offer anonymous JSON blobs without school/student accounts.
+const PROVIDERS=[
+ {id:"j",base:"https://jsonblob.com/api/jsonBlob"},
+ {id:"s",base:"https://superjsonblob.com/api/jsonBlob"}
+];
+const KIND="multiplication-class-v1", TTL=48*3600*1000;
+function providerById(value){return PROVIDERS.find(x=>x.id===value)||null}
 const $=id=>document.getElementById(id);
 const ar=v=>String(v).replace(/[0-9]/g,c=>String.fromCharCode(c.charCodeAt(0)+0x630));
-const valid=id=>/^[0-9a-f-]{32,50}$/i.test(id||"");
-const apiUrl=id=>API+"/"+encodeURIComponent(id);
+// jsonblob.com uses numeric IDs; superjsonblob.com uses UUID IDs.
+const valid=id=>/^(?:[0-9]{12,26}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.test(String(id||""));
+let provider=null;
+const apiUrl=id=>(provider||PROVIDERS[0]).base+"/"+encodeURIComponent(id);
 const cat=(level,seconds)=>level+":"+seconds;
 let room=new URLSearchParams(location.search).get("board");
 if(!valid(room))room=null;
+const requestedStore=new URLSearchParams(location.search).get("store");
+provider=providerById(requestedStore)||(room?(room.includes("-")?PROVIDERS[1]:PROVIDERS[0]):null);
 let board=null, pending=false, recent=null, lastName="";
 try{lastName=localStorage.getItem("multiplication-public-name")||""}catch(e){}
 const home=$("home"),results=$("results");
@@ -51,16 +61,35 @@ const expired=b=>!b||!Number.isFinite(Date.parse(b.expiresAt))||Date.now()>=Date
 const msg=(id,value,error)=>{const n=$(id);n.textContent=value;n.classList.toggle("lb-error",!!error)};
 const busy=v=>{pending=v;$("lbCreate").disabled=v;$("lbNewFromResult").disabled=v;$("lbPublish").disabled=v||!board||expired(board)};
 async function json(url,opt){
- const res=await fetch(url,Object.assign({cache:"no-store"},opt||{}));
- if(!res.ok)throw Error("HTTP "+res.status);
- return {value:await res.json(),headers:res.headers};
+ const res=await fetch(url,Object.assign({cache:"no-store",mode:"cors",credentials:"omit"},opt||{}));
+ if(!res.ok)throw Error("HTTP "+res.status+" ("+new URL(url).hostname+")");
+ // A successful POST or PUT may have an EMPTY response body; the new ID is
+ // then returned in the Location header. Do not incorrectly report failure.
+ const body=await res.text();let value=null;
+ if(body.trim()){
+  try{value=JSON.parse(body)}catch(e){throw Error("Non-JSON response from "+new URL(url).hostname)}
+ }
+ return {value,headers:res.headers,status:res.status};
+}
+function extractId(response){
+ const value=response.value||{};
+ const locationValue=response.headers.get("Location")||response.headers.get("X-jsonblob")||"";
+ const fromHeader=String(locationValue).split("?")[0].split("/").filter(Boolean).pop()||"";
+ return String(value.id||fromHeader);
+}
+function explainError(err){
+ const details=String(err&&err.message||err);
+ if(/^HTTP (429|403)/.test(details))return "خدمة النتائج تمنع الطلبات حاليًا ("+details.match(/HTTP \d+/)[0]+"). جرّب لاحقًا.";
+ if(/^HTTP 5/.test(details))return "خدمة النتائج تواجه مشكلة مؤقتة.";
+ if(/Failed to fetch|NetworkError|Load failed|TypeError/i.test(details))return "تعذّر اتصال المتصفح بخدمة النتائج (قد يكون بسبب الشبكة أو إعدادات المتصفح).";
+ return "تعذّر إنشاء لوحة الفصل؛ لم نحفظ أي أسماء أو نتائج.";
 }
 function checked(v){
  if(!v||v.kind!==KIND||!Array.isArray(v.entries)||!Number.isFinite(Date.parse(v.expiresAt)))throw Error("Invalid board");
  return v;
 }
 function link(){
- const u=new URL(location.href);u.searchParams.set("board",room);u.hash="";return u.href;
+ const u=new URL(location.href);u.searchParams.set("board",room);u.searchParams.set("store",provider.id);u.hash="";return u.href;
 }
 function draw(){
  if(!board)return;
@@ -95,23 +124,55 @@ function draw(){
 async function refresh(){
  if(!room)return;
  msg("lbMessage","جارٍ تحميل نتائج الفصل…");
- try{board=checked((await json(apiUrl(room))).value);draw();if(!expired(board))msg("lbMessage","هذه النتائج مرئية لجميع الطلاب الذين لديهم رابط الفصل.")}
- catch(e){msg("lbMessage","تعذّر تحميل النتائج العامة. قد تكون الخدمة الخارجية غير متاحة.",true)}
+ try{
+  // Preserve old classroom links, even when they were created on the backup provider.
+  const candidates=[provider,...PROVIDERS.filter(x=>x!==provider)].filter(Boolean);
+  let loaded=null,lastError=null;
+  for(const p of candidates){
+   try{
+    const remote=checked((await json(p.base+"/"+encodeURIComponent(room))).value);
+    provider=p;loaded=remote;break;
+   }catch(e){lastError=e}
+  }
+  if(!loaded)throw lastError||Error("Room unavailable");
+  board=loaded;draw();
+  if(!expired(board))msg("lbMessage","هذه النتائج مرئية لجميع الطلاب الذين لديهم رابط الفصل.");
+ }catch(e){
+  console.warn("Classroom leaderboard read failed:",e);
+  msg("lbMessage","تعذّر تحميل لوحة الفصل المشتركة. "+explainError(e),true);
+ }
 }
 async function create(){
  if(pending)return;busy(true);msg("lbMessage","جارٍ إنشاء رابط الفصل…");
  const now=Date.now(),seed={kind:KIND,createdAt:new Date(now).toISOString(),expiresAt:new Date(now+TTL).toISOString(),entries:[]};
+ let lastError=null;
  try{
-  const r=await json(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(seed)});
-  const id=r.value.id||String(r.headers.get("Location")||"").split("/").pop();
-  if(!valid(id))throw Error("No board id");
-  room=id;board=seed;
-  const u=new URL(location.href);u.searchParams.set("board",room);history.replaceState({},"",u.href);
-  msg("lbMessage","تم إنشاء اللوحة! انسخ رابط الفصل وأرسله للطلاب.");
-  msg("lbSaved",recent?"اكتب اسمك المستعار ثم اضغط «نشر النتيجة».":"");
-  $("lbNewFromResult").hidden=true;
- }catch(e){msg("lbMessage","تعذّر إنشاء اللوحة. لم يُنشأ حساب أو يحفظ أي اسم. حاول مرة أخرى.",true);msg("lbSaved","تعذّر إنشاء اللوحة.",true)}
- finally{busy(false);draw()}
+  // First use the long-established JSONBlob service; use superjsonblob as
+  // fallback. Both can be used without creating any player accounts.
+  for(const p of PROVIDERS){
+   try{
+    const response=await json(p.base,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(seed)});
+    const id=extractId(response);
+    if(!valid(id))throw Error("No usable record ID returned from "+p.base);
+    // Confirm the server actually stored the new board before showing a share link.
+    const stored=checked((await json(p.base+"/"+encodeURIComponent(id))).value);
+    if(stored.createdAt!==seed.createdAt)throw Error("Could not verify new classroom board");
+    room=id;board=stored;provider=p;
+    const u=new URL(location.href);
+    u.searchParams.set("board",room);
+    u.searchParams.set("store",provider.id);
+    history.replaceState({},"",u.href);
+    msg("lbMessage","تم إنشاء اللوحة! انسخ رابط الفصل وأرسله للطلاب.");
+    msg("lbSaved",recent?"اكتب اسمك المستعار ثم اضغط «نشر النتيجة».":"");
+    $("lbNewFromResult").hidden=true;
+    break;
+   }catch(e){console.warn("Leaderboard service unavailable:",p.base,e);lastError=e}
+  }
+  if(!board)throw lastError||Error("No available leaderboard service");
+ }catch(e){
+  msg("lbMessage","تعذّر إنشاء اللوحة باستخدام خدمتي الحفظ. "+explainError(e),true);
+  msg("lbSaved","تعذّر إنشاء اللوحة. جرّب من متصفح Chrome.",true);
+ }finally{busy(false);draw()}
 }
 function localId(){
  const key="multiplication-public-player-id";let id;
@@ -144,7 +205,10 @@ async function publish(){
   lastName=name;try{localStorage.setItem("multiplication-public-name",name)}catch(e){}
   $("lbCategory").value=type;draw();
   msg("lbSaved",previous?"✅ نتيجتك السابقة أفضل، واحتفظنا بها.":"✅ نُشرت نتيجتك على لوحة الفصل!");
- }catch(e){msg("lbSaved","تعذّر تأكيد نشر النتيجة. بقيت نتيجتك المحلية محفوظة؛ حاول مجددًا.",true)}
+ }catch(e){
+  console.warn("Leaderboard score submission failed:",e);
+  msg("lbSaved","تعذّر تأكيد نشر النتيجة: "+explainError(e)+" بقيت نتيجتك محليًا محفوظة.",true);
+ }
  finally{busy(false)}
 }
 function offer(run){
