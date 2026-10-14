@@ -20,6 +20,16 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:no
 .results{max-width:780px;margin:0 auto}.result-hero{text-align:center}.trophy{font-size:3.8rem}.result-hero h2{font-size:2rem;margin:4px 0}.result-hero p{color:var(--muted);margin:0 0 18px}.result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.result-grid .stat{text-align:center}.result-grid .stat b{font-size:2rem}.mistakes{margin-top:20px}.mistakes ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 25px;padding:0;list-style:none}.mistakes li{background:#fff6ef;padding:9px 14px;border-radius:11px;font-weight:700}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.footer{text-align:center;font-size:.82rem;color:var(--muted);margin-top:40px}
 @media(max-width:780px){.mode-grid{grid-template-columns:1fr}.mode{min-height:unset;padding:18px}.settings{grid-template-columns:1fr}.tables{grid-template-columns:repeat(2,minmax(0,1fr))}.hero:after{font-size:12rem}.hero{padding:24px}.back{font-size:.8rem}.shell{padding:16px 13px 40px}.stat{padding:12px}.result-grid .stat b{font-size:1.45rem}}
 @media(max-width:410px){.rows{gap:6px}.stat b{font-size:1.3rem}.stat span{font-size:.76rem}.question{font-size:3.5rem}.answer{height:68px;width:160px}.submit{height:68px;padding:10px 17px}.mistakes ul{grid-template-columns:1fr}.table-tile{padding:12px 9px}}
+.keypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));direction:ltr;width:min(100%,276px);gap:7px;margin:13px auto 0}
+.keypad .key{display:flex;align-items:center;justify-content:center;min-height:49px;border-radius:13px;border:1.5px solid #c4dfd5;background:#edf8f4;color:var(--ink);font-size:1.7rem;font-weight:900;line-height:1.1;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+.keypad .key:active:not(:disabled){background:#b5e7d5;transform:scale(.98)}
+.keypad .key:focus-visible{outline:3px solid #eaaa32;outline-offset:2px}
+.keypad .key-backspace{background:#fff3e6;border-color:#f4d8b2;color:#8b4f1b}
+.keypad .key-submit{background:var(--sea);border-color:var(--sea);color:#fff;font-size:2rem}
+.keypad .key-submit:active:not(:disabled){background:var(--sea-dark)}
+.answer[readonly]{cursor:default}
+@media(max-width:780px){.top{margin-bottom:13px}.game-head{gap:7px}.bar{margin:9px 0 12px}.question-card{padding:16px 13px;border-radius:21px}.question-label{font-size:.9rem}.question{font-size:clamp(2.9rem,11vw,4.2rem);line-height:1.3;margin:2px auto 7px}.answer{width:145px;height:53px;font-size:2rem;border-width:2px;border-radius:14px}.keypad{width:min(100%,259px);gap:6px;margin-top:11px}.keypad .key{min-height:46px;font-size:1.6rem}.keypad .key-submit{font-size:1.8rem}.feedback{min-height:27px;margin:8px 0 0;font-size:.95rem}.game-foot{margin-top:8px}.game-tip{font-size:.76rem}}
+@media(max-width:410px){.question{font-size:3.15rem}.answer{width:145px;height:53px}.keypad{width:min(100%,244px)}.keypad .key{min-height:45px}.game-head .counter{font-size:.84rem}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -53,10 +63,23 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:no
 <div class="bar" role="progressbar" aria-label="التقدم في النشاط" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar"><div id="progressFill" style="width:0%"></div></div>
 <div class="question-card">
 <div class="question-label">ما ناتج الضرب؟</div><div class="question" id="question" aria-live="polite">٢ × ٣ = ؟</div>
-<form id="answerForm" autocomplete="off"><label class="sr-only" for="answer">اكتب ناتج الضرب</label><div class="answer-row"><input id="answer" class="answer" type="text" lang="ar" dir="ltr" inputmode="numeric" enterkeyhint="done" maxlength="3" pattern="[0-9٠-٩۰-۹]*" placeholder="؟" aria-describedby="feedback" required><button id="submit" class="btn submit" type="submit">تأكيد ✓</button></div></form>
+<form id="answerForm" autocomplete="off"><label class="sr-only" for="answer">اكتب ناتج الضرب</label><div class="answer-row"><input id="answer" class="answer" type="text" lang="ar" dir="ltr" inputmode="none" readonly autocomplete="off" spellcheck="false" maxlength="3" placeholder="؟" aria-describedby="feedback"></div><div class="keypad" id="keypad" role="group" aria-label="لوحة الأرقام العربية">
+<button type="button" class="key" data-digit="1" aria-label="١">١</button>
+<button type="button" class="key" data-digit="2" aria-label="٢">٢</button>
+<button type="button" class="key" data-digit="3" aria-label="٣">٣</button>
+<button type="button" class="key" data-digit="4" aria-label="٤">٤</button>
+<button type="button" class="key" data-digit="5" aria-label="٥">٥</button>
+<button type="button" class="key" data-digit="6" aria-label="٦">٦</button>
+<button type="button" class="key" data-digit="7" aria-label="٧">٧</button>
+<button type="button" class="key" data-digit="8" aria-label="٨">٨</button>
+<button type="button" class="key" data-digit="9" aria-label="٩">٩</button>
+<button type="button" class="key key-backspace" id="backspace" aria-label="حذف الرقم الأخير">⌫</button>
+<button type="button" class="key" data-digit="0" aria-label="صفر">٠</button>
+<button id="submit" class="key key-submit" type="submit" aria-label="تأكيد الإجابة">✓</button>
+</div></form>
 <p id="feedback" class="feedback" aria-live="polite"></p>
 </div>
-<div class="game-foot"><span class="game-tip">اكتب الرقم ثم اضغط «تأكيد» أو Enter.</span><button id="stop" class="quiet" type="button">إنهاء النشاط</button></div>
+<div class="game-foot"><span class="game-tip">أدخل الناتج من لوحة الأرقام العربية، ثم اضغط ✓.</span><button id="stop" class="quiet" type="button">إنهاء النشاط</button></div>
 </section>
 <section id="results" class="results" hidden>
 <div class="panel">
@@ -168,7 +191,7 @@ function nextQuestion(){
  if(s.mode==="challenge"&&s.correct>=s.target){finish("won");return}
  let q=s.mode==="practice"?weightedCard(s):s.deck.shift();
  if(!q){s.deck=shuffleDeck(allCards());q=s.deck.shift()}
- s.question=q;s.startedQuestion=performance.now();s.busy=false;$("submit").disabled=false;
+ s.question=q;s.startedQuestion=performance.now();s.busy=false;document.querySelectorAll(".keypad .key").forEach(key=>key.disabled=false);
  $("question").textContent=digits(q.a)+" × "+digits(q.b)+" = ؟";
  $("answer").value="";$("answer").disabled=false;$("feedback").textContent="";$("feedback").className="feedback";
  updateHud();if(s.mode==="challenge")tick();
@@ -189,7 +212,7 @@ function answer(e){
   if(s.correct>=s.target){finish("won");return}
   nextQuestion();return;
  }
- s.busy=true;$("submit").disabled=true;$("answer").disabled=true;
+ s.busy=true;document.querySelectorAll(".keypad .key").forEach(key=>key.disabled=true);$("answer").disabled=true;
  $("feedback").textContent=ok?"أحسنت! إجابة صحيحة 🌟":"لنتذكر: "+digits(q.a)+" × "+digits(q.b)+" = "+digits(expected);
  $("feedback").className="feedback "+(ok?"ok":"no");updateHud();
  setTimeout(()=>{if(session===s&&!s.done)nextQuestion()},ok?430:1600);
@@ -219,6 +242,28 @@ answerField.addEventListener("input",()=>{
   answerField.value=eastern;
   if(caret!==null)answerField.setSelectionRange(caret,caret);
  }
+});
+function changeAnswerDigit(value){
+ const s=session;if(!s||s.done||s.busy||answerField.disabled)return;
+ const current=arabicToEnglish(answerField.value);
+ if(current.length>=3)return;
+ answerField.value=digits(current+value);
+}
+function eraseAnswerDigit(){
+ const s=session;if(!s||s.done||s.busy||answerField.disabled)return;
+ const current=arabicToEnglish(answerField.value);
+ answerField.value=digits(current.slice(0,-1));
+}
+document.querySelectorAll(".keypad [data-digit]").forEach(key=>{
+ key.addEventListener("click",()=>changeAnswerDigit(key.dataset.digit));
+});
+$("backspace").addEventListener("click",eraseAnswerDigit);
+// Support a physical keyboard while never opening the Android system keyboard.
+document.addEventListener("keydown",e=>{
+ if(!session||session.done||$("play").hidden||e.ctrlKey||e.altKey||e.metaKey||e.isComposing)return;
+ if(/^[0-9٠-٩۰-۹]$/.test(e.key)){e.preventDefault();changeAnswerDigit(arabicToEnglish(e.key));}
+ else if(e.key==="Backspace"&&e.target!==$("stop")){e.preventDefault();eraseAnswerDigit();}
+ else if(e.key==="Enter"&&e.target===answerField){e.preventDefault();$("answerForm").requestSubmit();}
 });
 $("answerForm").addEventListener("submit",answer);
 document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>start(b.dataset.mode)));
