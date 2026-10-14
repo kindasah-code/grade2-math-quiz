@@ -1,0 +1,32 @@
+/* 48-hour classroom leaderboard, consistent with Cairo and the game styles */
+.lb-section{margin:23px 0 8px}
+.lb-section>.section-title{margin:28px 0 12px}
+.lb-panel{background:#fff}
+.lb-panel>p:first-child{margin-top:0}
+.lb-panel .settings-note{line-height:1.65}
+.lb-share{display:flex;gap:9px;align-items:stretch;flex-wrap:wrap;margin:11px 0}
+.lb-share .select{flex:1 1 200px;min-width:0}
+.lb-share .btn{flex:0 0 auto}
+.lb-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:15px 0}
+.lb-controls label{font-weight:800}
+.lb-controls .select{flex:1 1 180px;max-width:300px}
+.lb-message{min-height:20px;font-size:.88rem;color:#477167;margin:10px 0}
+.lb-error{color:#b74636}
+.lb-table{width:100%;border-collapse:collapse;text-align:right}
+.lb-table th{font-size:.8rem;font-weight:850;color:#5f727a;background:#f2f8f5}
+.lb-table th,.lb-table td{padding:9px 7px;border-bottom:1px solid #e4eee9}
+.lb-table tr:last-child td{border-bottom:none}
+.lb-table td{font-weight:800;font-size:.96rem}
+.lb-table td:first-child{width:65px}
+.lb-table td:nth-child(3),.lb-table td:nth-child(4){white-space:nowrap}
+.lb-result{margin-top:18px}
+.lb-result h3{margin:0 0 4px;font-size:1.2rem}
+.lb-result .settings-note{margin:4px 0 8px}
+@media(max-width:540px){
+ .lb-panel{padding:16px}
+ .lb-table th{font-size:.72rem}
+ .lb-table td{font-size:.89rem}
+ .lb-table th,.lb-table td{padding:8px 5px}
+ .lb-controls .select{max-width:none}
+ .lb-share .btn{padding:10px 14px}
+}
