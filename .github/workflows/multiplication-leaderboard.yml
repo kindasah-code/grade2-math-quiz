@@ -48,7 +48,7 @@ jobs:
           if not re.fullmatch(r"[A-Za-z0-9]{16,50}",bid):
               raise RuntimeError("Provider returned an unexpected bucket id: "+repr(reply)[:160])
           key=api+"/"+bid+"/health"
-          req=urllib.request.Request(key,data=b"ready",headers={"Content-Type":"text/plain"},method="POST")
+          req=urllib.request.Request(key,data=b"ready",headers={"Content-Type":"text/plain"},method="PUT")
           with urllib.request.urlopen(req,timeout=20) as response:
               print("Health key stored:",response.status)
           with urllib.request.urlopen(key,timeout=20) as response:
