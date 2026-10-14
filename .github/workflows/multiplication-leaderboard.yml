@@ -17,7 +17,7 @@ jobs:
       - name: Create public scoreboard if missing or expired
         run: |
           python3 - <<'PY'
-          import datetime, json, pathlib, re, urllib.request
+          import datetime, json, pathlib, re, urllib.parse, urllib.request
           from datetime import timezone, timedelta
           p = pathlib.Path("multiplication/leaderboard-config.json")
           now = datetime.datetime.now(timezone.utc)
@@ -25,27 +25,38 @@ jobs:
               try:
                   previous = json.loads(p.read_text(encoding="utf-8"))
                   expires = datetime.datetime.fromisoformat(previous["expiresAt"].replace("Z","+00:00"))
-                  if previous.get("gameId") and expires > now:
-                      print("Existing board still valid until",expires)
+                  if previous.get("bucketId") and expires > now:
+                      print("Existing board is valid until",expires)
                       raise SystemExit(0)
               except (KeyError, ValueError, json.JSONDecodeError):
                   pass
-          api = "https://us-central1-js-capstone-backend.cloudfunctions.net/api/games/"
-          payload = json.dumps({"name":"Multiplication heroes anonymous classroom scoreboard "+now.strftime("%Y-%m-%d %H:%M UTC")}).encode()
-          req = urllib.request.Request(api,data=payload,headers={"Content-Type":"application/json"},method="POST")
-          with urllib.request.urlopen(req,timeout=18) as response:
-              reply=json.load(response)
-          match=re.search(r"Game with ID:\s*([a-zA-Z0-9]+)",str(reply.get("result","")))
-          if not match:
-              raise RuntimeError("Could not create a game board: "+repr(reply))
-          gameid=match.group(1)
-          with urllib.request.urlopen(api+gameid+"/scores/",timeout=18) as response:
-              result=json.load(response)
-          if not isinstance(result.get("result"),list):
-              raise RuntimeError("New board failed readback")
-          item={"provider":"microverse","gameId":gameid,"createdAt":now.isoformat(),"expiresAt":(now+timedelta(hours=48)).isoformat()}
+          # Anonymous public read/write bucket; no credentials embedded in GitHub Pages.
+          api = "https://kvdb.io"
+          form = urllib.parse.urlencode({
+            "email":"245439233+kindasah-code@users.noreply.github.com",
+            "default_ttl":172800
+          }).encode("utf-8")
+          request=urllib.request.Request(api,data=form,headers={"Content-Type":"application/x-www-form-urlencoded"},method="POST")
+          with urllib.request.urlopen(request,timeout=20) as response:
+              reply=response.read().decode("utf-8").strip()
+          try:
+              parsed=json.loads(reply)
+              bid=str(parsed.get("id") or parsed.get("bucket_id") or parsed.get("bucket") or "")
+          except ValueError:
+              bid=reply
+          bid=bid.strip().strip('"').split("/")[-1]
+          if not re.fullmatch(r"[A-Za-z0-9]{16,50}",bid):
+              raise RuntimeError("Provider returned an unexpected bucket id: "+repr(reply)[:160])
+          key=api+"/"+bid+"/health"
+          req=urllib.request.Request(key,data=b"ready",headers={"Content-Type":"text/plain"},method="POST")
+          with urllib.request.urlopen(req,timeout=20) as response:
+              print("Health key stored:",response.status)
+          with urllib.request.urlopen(key,timeout=20) as response:
+              got=response.read().decode("utf-8")
+          if got!="ready":raise RuntimeError("New bucket failed read-back")
+          item={"provider":"kvdb","bucketId":bid,"createdAt":now.isoformat(),"expiresAt":(now+timedelta(hours=48)).isoformat()}
           p.write_text(json.dumps(item,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-          print("Created new 48h board, expires",item["expiresAt"])
+          print("Created temporary public board, expires:",item["expiresAt"])
           PY
       - name: Publish updated scoreboard configuration
         run: |
