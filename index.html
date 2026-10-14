@@ -4,18 +4,96 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#176e5b">
-  <meta name="description" content="اختبار رياضيات تفاعلي عربي للصف الثاني الابتدائي: ٢٠ سؤالًا في القيمة المنزلية حتى ١٠٠ والأنماط وطرائق الجمع، مع صور وتلميحات وتصحيح فوري.">
-  <title>رحلة الأعداد | رياضيات الصف الثاني</title>
+  <meta name="description" content="مكتبة تعليمية للصف الثاني والرابع الابتدائي: رياضيات، لغتي، الدراسات الإسلامية، العلوم، وتحديات جداول الضرب. اختر الصف الدراسي ثم النشاط المناسب.">
+  <title>مكتبة الأنشطة التعليمية | الصف الثاني والرابع</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23176e5b'/%3E%3Cpath d='M16 32h32M32 16v32' stroke='white' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="activities.css">
   <script defer src="questions.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
-  <a class="skip" href="#main">انتقل إلى المحتوى</a>
+  <a class="skip" href="#activities">انتقل إلى الأنشطة</a>
   <div class="page">
-    <header class="site-header"><a class="brand" href="./" aria-label="رحلة الأعداد، الصفحة الرئيسية"><span class="brand-icon" aria-hidden="true">✦</span><span>رحلة الأعداد<small>نتعلّم خطوة بخطوة</small></span></a><span class="grade">الصف الثاني الابتدائي</span></header>
-    <p style="text-align:center;display:flex;justify-content:center;gap:16px;flex-wrap:wrap"><a href="./arabic/">📖 تدريب لغتي — الصف الثاني الابتدائي</a><a href="./multiplication/">✖️ أبطال الضرب — تدريب وتحدي جداول ١–١٠</a><a href="./science-grade4/">🌿 مذكرة العلوم — الصف الرابع الابتدائي</a><a href="./islamic-grade2/">🕌 الدراسات الإسلامية — الصف الثاني</a><a href="./islamic-grade4/">📘 الدراسات الإسلامية — الصف الرابع</a></p>
+    <header class="site-header"><a class="brand" href="./" aria-label="مكتبة الأنشطة، الصفحة الرئيسية"><span class="brand-icon" aria-hidden="true">✦</span><span>مكتبة الأنشطة<small>نتعلّم خطوة بخطوة</small></span></a><span class="grade">الصف الثاني والرابع</span></header>
+    <nav class="activity-directory" id="activities" tabindex="-1" aria-label="الأنشطة التعليمية مرتبة حسب الصف الدراسي">
+  <div class="activity-intro">
+    <div>
+      <span class="activity-kicker">مكتبة التعلّم • ٦ أنشطة</span>
+      <h1>اختر صفّك، ثم ابدأ التعلّم</h1>
+      <p>الاختبارات والمذكرات والألعاب التعليمية، الآن مرتبة حسب الصف الدراسي لتصل إلى ما تحتاجه بسهولة.</p>
+    </div>
+    <div class="activity-jumps" aria-label="انتقل إلى الصف الدراسي">
+      <a href="#grade-2">الصف الثاني الابتدائي <span aria-hidden="true">↓</span></a>
+      <a href="#grade-4">الصف الرابع الابتدائي <span aria-hidden="true">↓</span></a>
+    </div>
+  </div>
+
+  <section class="activity-grade" id="grade-2" aria-labelledby="grade-2-heading">
+    <div class="activity-grade-heading">
+      <div class="activity-grade-title">
+        <span class="activity-grade-num" aria-hidden="true">٢</span>
+        <div><h2 id="grade-2-heading">الصف الثاني الابتدائي</h2><p>اختبارات وتدريبات على موضوعات الصف الثاني</p></div>
+      </div>
+      <span class="activity-count">٣ أنشطة</span>
+    </div>
+    <div class="activity-cards">
+      <a class="activity-card" href="#main" aria-label="افتح اختبار الرياضيات للصف الثاني، داخل الصفحة الحالية">
+        <span class="activity-icon" aria-hidden="true">➕</span>
+        <h3>الرياضيات</h3>
+        <p>القيمة المنزلية حتى ١٠٠، الأنماط، وطرائق الجمع.</p>
+        <span class="activity-open">ابدأ الاختبار <span aria-hidden="true">←</span></span>
+      </a>
+      <a class="activity-card" href="./arabic/">
+        <span class="activity-icon blue" aria-hidden="true">📖</span>
+        <h3>لغتي العربية</h3>
+        <p>تدريبات تفاعلية تساعد على فهم الأسئلة والإجابة عنها.</p>
+        <span class="activity-open">افتح التدريب <span aria-hidden="true">←</span></span>
+      </a>
+      <a class="activity-card" href="./islamic-grade2/">
+        <span class="activity-icon amber" aria-hidden="true">🕌</span>
+        <h3>الدراسات الإسلامية</h3>
+        <p>مذكرة مراجعة نصف الفترة وبطاقات تعليمية واختبار.</p>
+        <span class="activity-open">افتح المراجعة <span aria-hidden="true">←</span></span>
+      </a>
+    </div>
+  </section>
+
+  <section class="activity-grade activity-grade-four" id="grade-4" aria-labelledby="grade-4-heading">
+    <div class="activity-grade-heading">
+      <div class="activity-grade-title">
+        <span class="activity-grade-num" aria-hidden="true">٤</span>
+        <div><h2 id="grade-4-heading">الصف الرابع الابتدائي</h2><p>المذكرات التعليمية والتحديات المناسبة للتدريب</p></div>
+      </div>
+      <span class="activity-count">٣ أنشطة</span>
+    </div>
+    <div class="activity-cards">
+      <a class="activity-card" href="./science-grade4/">
+        <span class="activity-icon" aria-hidden="true">🌿</span>
+        <h3>العلوم</h3>
+        <p>الوحدة الأولى: المخلوقات الحية، شرح ومراجعة واختبار.</p>
+        <span class="activity-open">افتح المذكرة <span aria-hidden="true">←</span></span>
+      </a>
+      <a class="activity-card" href="./islamic-grade4/">
+        <span class="activity-icon lilac" aria-hidden="true">📘</span>
+        <h3>الدراسات الإسلامية</h3>
+        <p>مراجعة نصف الفترة مع أسئلة وتفسير الإجابات.</p>
+        <span class="activity-open">افتح المراجعة <span aria-hidden="true">←</span></span>
+      </a>
+      <a class="activity-card" href="./multiplication/">
+        <span class="activity-icon amber" aria-hidden="true">✖️</span>
+        <h3>أبطال الضرب</h3>
+        <p>حفظ جداول الضرب من ١ إلى ١٠، تدريب وألعاب وتحديات.</p>
+        <span class="activity-open">ابدأ التحدّي <span aria-hidden="true">←</span></span>
+      </a>
+    </div>
+  </section>
+  <p class="activity-directory-note">💡 تدريب جداول الضرب نشاط إثرائي متاح لأي طالب، وليس مقتصرًا على الصف الرابع.</p>
+</nav>
+<div class="activity-quiz-divider" aria-hidden="true"></div>
     <main id="main" tabindex="-1"></main>
     <footer class="site-footer"><span>صُمّم للتعلّم بثقة وفضول <span aria-hidden="true">✦</span></span><span>تدريب إثرائي على موضوعات المنهج السعودي · بدون مؤقّت</span></footer>
   </div>
