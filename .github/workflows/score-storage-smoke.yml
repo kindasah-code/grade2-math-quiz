@@ -15,7 +15,7 @@ jobs:
       - name: Verify free anonymous public read/write with Arabic nicknames
         run: |
           python3 - <<'PY'
-          import json,urllib.request,urllib.error,urllib.parse,pathlib,datetime,time
+          import json,urllib.request,urllib.error,urllib.parse,pathlib,datetime,time,base64
           ORIGIN='https://kindasah-code.github.io'
           base='https://keyvalue.immanuel.co/api/KeyVal'
           config=pathlib.Path('multiplication/leaderboard-service.json')
@@ -30,7 +30,8 @@ jobs:
           key='health-mathheroes-20261014'
           results=[['أحمد',12,15,37,int(time.time()*1000)],['سارة',10,10,23,int(time.time()*1000)]]
           raw=json.dumps(results,ensure_ascii=False,separators=(',',':'))
-          print('Raw chars=',len(raw),'Encoded path bytes=',len(urllib.parse.quote(raw,safe='')),flush=True)
+          packed=base64.urlsafe_b64encode(raw.encode('utf-8')).decode('ascii').rstrip('=')
+          print('UTF8 data size=',len(raw.encode()),'Encoded bytes=',len(packed),flush=True)
           def request(method,url):
               req=urllib.request.Request(url,method=method,headers={'Origin':ORIGIN})
               with urllib.request.urlopen(req,timeout=20) as res:
@@ -39,17 +40,18 @@ jobs:
                   print(method,'status',res.status,'cors',cors,'value',repr(result)[:250],flush=True)
                   assert cors in ('*',ORIGIN),'Browser CORS unavailable on '+method
                   return result
-          write=base+'/UpdateValue/'+app+'/'+key+'/'+urllib.parse.quote(raw,safe='')
+          write=base+'/UpdateValue/'+app+'/'+key+'/'+packed
           assert request('POST',write) is True
           received=request('GET',base+'/GetValue/'+app+'/'+key)
-          if isinstance(received,str):received=json.loads(received)
+          if isinstance(received,str):received=json.loads(base64.urlsafe_b64decode(received+'='*(-len(received)%4)).decode('utf-8'))
           assert received==results,'Arabic results not round-tripped'
           # Replace a value to ensure game updates work
           results[1][1]=14
           raw2=json.dumps(results,ensure_ascii=False,separators=(',',':'))
-          assert request('POST',base+'/UpdateValue/'+app+'/'+key+'/'+urllib.parse.quote(raw2,safe='')) is True
+          packed2=base64.urlsafe_b64encode(raw2.encode('utf-8')).decode('ascii').rstrip('=')
+          assert request('POST',base+'/UpdateValue/'+app+'/'+key+'/'+packed2) is True
           received=request('GET',base+'/GetValue/'+app+'/'+key)
-          if isinstance(received,str):received=json.loads(received)
+          if isinstance(received,str):received=json.loads(base64.urlsafe_b64decode(received+'='*(-len(received)%4)).decode('utf-8'))
           assert received==results
           config.parent.mkdir(parents=True,exist_ok=True)
           config.write_text(json.dumps({'provider':'keyvalue.immanuel.co','appKey':app,'shards':8,'lastTested':datetime.datetime.now(datetime.timezone.utc).isoformat()},indent=2)+'\n')
