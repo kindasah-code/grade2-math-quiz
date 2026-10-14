@@ -1,0 +1,58 @@
+name: Rotate anonymous classroom multiplication leaderboard
+on:
+  push:
+    paths:
+      - '.github/workflows/multiplication-leaderboard.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+permissions:
+  contents: write
+jobs:
+  keep-board-ready:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create public scoreboard if missing or expired
+        run: |
+          python3 - <<'PY'
+          import datetime, json, pathlib, re, urllib.request
+          from datetime import timezone, timedelta
+          p = pathlib.Path("multiplication/leaderboard-config.json")
+          now = datetime.datetime.now(timezone.utc)
+          if p.exists():
+              try:
+                  previous = json.loads(p.read_text(encoding="utf-8"))
+                  expires = datetime.datetime.fromisoformat(previous["expiresAt"].replace("Z","+00:00"))
+                  if previous.get("gameId") and expires > now:
+                      print("Existing board still valid until",expires)
+                      raise SystemExit(0)
+              except (KeyError, ValueError, json.JSONDecodeError):
+                  pass
+          api = "https://us-central1-js-capstone-backend.cloudfunctions.net/api/games/"
+          payload = json.dumps({"name":"Multiplication heroes anonymous classroom scoreboard "+now.strftime("%Y-%m-%d %H:%M UTC")}).encode()
+          req = urllib.request.Request(api,data=payload,headers={"Content-Type":"application/json"},method="POST")
+          with urllib.request.urlopen(req,timeout=18) as response:
+              reply=json.load(response)
+          match=re.search(r"Game with ID:\s*([a-zA-Z0-9]+)",str(reply.get("result","")))
+          if not match:
+              raise RuntimeError("Could not create a game board: "+repr(reply))
+          gameid=match.group(1)
+          with urllib.request.urlopen(api+gameid+"/scores/",timeout=18) as response:
+              result=json.load(response)
+          if not isinstance(result.get("result"),list):
+              raise RuntimeError("New board failed readback")
+          item={"provider":"microverse","gameId":gameid,"createdAt":now.isoformat(),"expiresAt":(now+timedelta(hours=48)).isoformat()}
+          p.write_text(json.dumps(item,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          print("Created new 48h board, expires",item["expiresAt"])
+          PY
+      - name: Publish updated scoreboard configuration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add multiplication/leaderboard-config.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh 48h multiplication scoreboard"
+            git push
+          fi
