@@ -6,9 +6,12 @@
 <meta name="theme-color" content="#087f78">
 <meta name="description" content="رحلة إتقان جدول الضرب من ١ إلى ١٠: إجابات مكتوبة، أسئلة عشوائية، تقييم إتقان كل جدول، تدريب ذكي وتحديات زمنية.">
 <title>أبطال الضرب | حفظ جدول الضرب ١–١٠</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400..1000&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#153143;--muted:#586c78;--sea:#087f78;--sea-dark:#075e59;--orange:#f6a448;--cream:#fffaf2;--line:#dbe8e5;--white:#fff;--good:#178364;--bad:#b74636;--shadow:0 16px 44px rgba(25,65,75,.10)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 8% 15%,#fff0cb,transparent 34%),radial-gradient(circle at 96% 35%,#d3f4eb,transparent 37%),var(--cream);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;line-height:1.65}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 8% 15%,#fff0cb,transparent 34%),radial-gradient(circle at 96% 35%,#d3f4eb,transparent 37%),var(--cream);color:var(--ink);font-family:"Cairo",Tahoma,Arial,sans-serif;line-height:1.65}
 button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.6}a{color:var(--sea-dark)}[hidden]{display:none!important}
 .shell{max-width:1100px;margin:auto;padding:22px 18px 48px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:30px}.brand{display:flex;align-items:center;gap:12px;font-size:1.15rem;font-weight:900;text-decoration:none;color:var(--ink)}.brand-mark{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;background:var(--sea);color:#fff;font-size:1.5rem;box-shadow:0 7px 18px #087f7840}.back{border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:14px;text-decoration:none;font-weight:800}
 .hero{background:linear-gradient(128deg,#087f78,#115b79);color:white;border-radius:30px;padding:clamp(26px,5vw,48px);box-shadow:var(--shadow);position:relative;overflow:hidden}.hero:after{content:"×";position:absolute;left:26px;bottom:-70px;color:#ffffff15;font-size:17rem;font-weight:900;pointer-events:none}.eyebrow{display:inline-flex;gap:8px;align-items:center;background:#ffffff2d;padding:6px 15px;border-radius:100px;font-size:.9rem;font-weight:800}.hero h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.23;margin:18px 0 12px}.hero p{max-width:660px;margin:0;font-size:1.05rem;color:#ecfffa}.section-title{margin:30px 0 12px;font-size:1.4rem}.mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.mode{background:#fff;border:2px solid var(--line);border-radius:23px;padding:24px;text-align:right;box-shadow:0 6px 25px rgba(24,55,64,.05);transition:transform .15s,border-color .15s;min-height:180px;color:var(--ink)}.mode:hover,.mode:focus-visible{transform:translateY(-3px);border-color:var(--sea)}.mode:focus-visible,.btn:focus-visible,.table-tile:focus-visible{outline:3px solid #eaaa32;outline-offset:3px}.mode-emoji{display:block;font-size:2.2rem}.mode strong{font-size:1.2rem;display:block;margin-top:8px}.mode small{font-size:.96rem;display:block;color:var(--muted);margin-top:6px}.panel{background:#fff;border:1px solid var(--line);border-radius:23px;padding:22px;box-shadow:0 6px 25px rgba(24,55,64,.04)}.settings{display:grid;grid-template-columns:1fr 1fr;gap:18px}.settings label{display:block;font-weight:800;margin-bottom:6px}.select{width:100%;border:1.5px solid #b7d1cb;border-radius:13px;background:#fff;padding:11px 13px;color:var(--ink)}.settings-note{color:var(--muted);font-size:.87rem;margin-top:8px}.rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.stat{background:#f3faf7;border:1px solid #d6e9e3;border-radius:16px;padding:15px}.stat b{display:block;font-size:1.7rem;color:var(--sea-dark)}.stat span{font-size:.9rem;color:var(--muted)}.tables{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:16px}.table-tile{background:#fff;border:1.5px solid var(--line);border-radius:17px;text-align:right;padding:14px 12px;color:var(--ink)}.table-tile:hover{border-color:var(--sea)}.table-tile b{display:block;font-size:1.25rem}.table-tile small{display:block;font-weight:800;font-size:.78rem;margin-top:5px}.table-tile p{margin:3px 0 0;color:var(--muted);font-size:.77rem}.track{height:8px;border-radius:999px;background:#e5efeb;overflow:hidden;margin:7px 0 4px}.fill{height:100%;background:var(--sea);border-radius:999px}.mastered{color:var(--good)}.needs{color:var(--bad)}.learning{color:#85630a}.unseen{color:var(--muted)}
@@ -50,7 +53,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:no
 <div class="bar" role="progressbar" aria-label="التقدم في النشاط" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar"><div id="progressFill" style="width:0%"></div></div>
 <div class="question-card">
 <div class="question-label">ما ناتج الضرب؟</div><div class="question" id="question" aria-live="polite">٢ × ٣ = ؟</div>
-<form id="answerForm" autocomplete="off"><label class="sr-only" for="answer">اكتب ناتج الضرب</label><div class="answer-row"><input id="answer" class="answer" type="text" inputmode="numeric" enterkeyhint="done" maxlength="3" pattern="[0-9٠-٩۰-۹]*" placeholder="؟" aria-describedby="feedback" required><button id="submit" class="btn submit" type="submit">تأكيد ✓</button></div></form>
+<form id="answerForm" autocomplete="off"><label class="sr-only" for="answer">اكتب ناتج الضرب</label><div class="answer-row"><input id="answer" class="answer" type="text" lang="ar" dir="ltr" inputmode="numeric" enterkeyhint="done" maxlength="3" pattern="[0-9٠-٩۰-۹]*" placeholder="؟" aria-describedby="feedback" required><button id="submit" class="btn submit" type="submit">تأكيد ✓</button></div></form>
 <p id="feedback" class="feedback" aria-live="polite"></p>
 </div>
 <div class="game-foot"><span class="game-tip">اكتب الرقم ثم اضغط «تأكيد» أو Enter.</span><button id="stop" class="quiet" type="button">إنهاء النشاط</button></div>
@@ -207,6 +210,16 @@ function finish(reason){
  misses.hidden=!wrong.length;
  lastMode=s.mode;lastTable=s.table;
 }
+const answerField=$("answer");
+answerField.addEventListener("input",()=>{
+ // Show Eastern Arabic numerals even when the phone keyboard enters 0-9.
+ const caret=answerField.selectionStart;
+ const eastern=digits(arabicToEnglish(answerField.value));
+ if(eastern!==answerField.value){
+  answerField.value=eastern;
+  if(caret!==null)answerField.setSelectionRange(caret,caret);
+ }
+});
 $("answerForm").addEventListener("submit",answer);
 document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>start(b.dataset.mode)));
 $("stop").addEventListener("click",()=>{if(!session)return;if(confirm("هل تريد إنهاء النشاط وعرض نتيجتك الحالية؟"))finish("exit")});
