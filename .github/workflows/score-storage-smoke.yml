@@ -1,75 +1,66 @@
-name: Verify anonymous public scoreboard storage
+name: Provision and verify public multiplication leaderboard
 on:
   push:
     paths:
       - '.github/workflows/score-storage-smoke.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
-  verify:
+  verify-and-provision:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
-      - name: Probe anonymous score services with actual writes
-        shell: bash
+      - uses: actions/checkout@v4
+      - name: Verify free anonymous public read/write with Arabic nicknames
         run: |
           python3 - <<'PY'
-          import json,urllib.request,urllib.error,urllib.parse,uuid
+          import json,urllib.request,urllib.error,urllib.parse,pathlib,datetime,time
           ORIGIN='https://kindasah-code.github.io'
-          suffix=uuid.uuid4().hex[:12]
-          def call(method,url,body=None,contenttype='application/json',extra=None):
-              headers={'Origin':ORIGIN,'User-Agent':'MultiplicationHeroesSmokeTest/1.0'}
-              data=None
-              if body is not None:
-                  headers['Content-Type']=contenttype
-                  data=(json.dumps(body) if contenttype=='application/json' else body).encode()
-              headers.update(extra or {})
-              req=urllib.request.Request(url,data=data,headers=headers,method=method)
-              try:
-                  with urllib.request.urlopen(req,timeout=12) as resp:
-                      payload=resp.read(3000).decode('utf-8',errors='replace')
-                      print('OK',method,url.split('/')[2],resp.status,'CORS',resp.headers.get('Access-Control-Allow-Origin'),'BODY',repr(payload[:300]),flush=True)
-                      try: parsed=json.loads(payload)
-                      except ValueError: parsed=payload
-                      return resp.status,parsed,dict(resp.headers)
-              except urllib.error.HTTPError as e:
-                  print('HTTP',method,url.split('/')[2],e.code,repr(e.read(300).decode(errors='replace')),flush=True)
-              except Exception as e:
-                  print('ERROR',method,url.split('/')[2],str(e)[:350],flush=True)
-              return 0,None,{}
-          def cors(url):
-              return call('OPTIONS',url,extra={'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type'})
-          print('--- Keyvalue.immanuel.co ---',flush=True)
-          code,app,_=call('GET','https://keyvalue.immanuel.co/api/KeyVal/GetAppKey')
-          if code and app:
-              key=str(app).strip('"')
-              keyname='mhtrial'+suffix
-              call('POST','https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/'+key+'/'+keyname+'/fortytwo')
-              call('GET','https://keyvalue.immanuel.co/api/KeyVal/GetValue/'+key+'/'+keyname)
-              cors('https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/'+key+'/'+keyname+'/fortytwo')
-          print('--- jsonstorage.net ---',flush=True)
-          body={'test':'multiplication-heroes','a':12,'b':23,'stamp':suffix}
-          code,item,_=call('POST','https://api.jsonstorage.net/v1/json',body)
-          if code in (200,201) and isinstance(item,dict) and item.get('uri'):
-              target=item['uri']
-              call('GET',target)
-              call('PATCH',target,{'c':36})
-              call('GET',target)
-              cors(target)
-          print('--- jsonbin-zeta.vercel.app ---',flush=True)
-          code,item,_=call('POST','https://jsonbin-zeta.vercel.app/api/bins',body)
-          if code in (200,201) and isinstance(item,dict):
-              itemid=item.get('id') or item.get('_id') or (item.get('data') or {}).get('id') or ''
-              if itemid:
-                  url='https://jsonbin-zeta.vercel.app/api/bins/'+str(itemid)
-                  call('GET',url)
-                  call('PUT',url,{'test':'updated','a':25})
-                  call('GET',url)
-              cors('https://jsonbin-zeta.vercel.app/api/bins')
-          print('--- keyval.org ---',flush=True)
-          k='mh-score-check-'+suffix
-          call('GET','https://api.keyval.org/set/'+k+'/fortytwo')
-          call('GET','https://api.keyval.org/get/'+k)
-          print('TESTS FINISHED',flush=True)
+          base='https://keyvalue.immanuel.co/api/KeyVal'
+          config=pathlib.Path('multiplication/leaderboard-service.json')
+          if config.exists():
+              existing=json.loads(config.read_text())
+              app=existing['appKey']
+          else:
+              with urllib.request.urlopen(urllib.request.Request(base+'/GetAppKey',headers={'Origin':ORIGIN}),timeout=15) as res:
+                  assert res.headers.get('Access-Control-Allow-Origin') in ('*',ORIGIN)
+                  app=json.load(res)
+          assert isinstance(app,str) and len(app)>=7,repr(app)
+          key='health-mathheroes-20261014'
+          results=[['أحمد',12,15,37,int(time.time()*1000)],['سارة',10,10,23,int(time.time()*1000)]]
+          raw=json.dumps(results,ensure_ascii=False,separators=(',',':'))
+          print('Raw chars=',len(raw),'Encoded path bytes=',len(urllib.parse.quote(raw,safe='')),flush=True)
+          def request(method,url):
+              req=urllib.request.Request(url,method=method,headers={'Origin':ORIGIN})
+              with urllib.request.urlopen(req,timeout=20) as res:
+                  cors=res.headers.get('Access-Control-Allow-Origin')
+                  result=json.load(res)
+                  print(method,'status',res.status,'cors',cors,'value',repr(result)[:250],flush=True)
+                  assert cors in ('*',ORIGIN),'Browser CORS unavailable on '+method
+                  return result
+          write=base+'/UpdateValue/'+app+'/'+key+'/'+urllib.parse.quote(raw,safe='')
+          assert request('POST',write) is True
+          received=request('GET',base+'/GetValue/'+app+'/'+key)
+          if isinstance(received,str):received=json.loads(received)
+          assert received==results,'Arabic results not round-tripped'
+          # Replace a value to ensure game updates work
+          results[1][1]=14
+          raw2=json.dumps(results,ensure_ascii=False,separators=(',',':'))
+          assert request('POST',base+'/UpdateValue/'+app+'/'+key+'/'+urllib.parse.quote(raw2,safe='')) is True
+          received=request('GET',base+'/GetValue/'+app+'/'+key)
+          if isinstance(received,str):received=json.loads(received)
+          assert received==results
+          config.parent.mkdir(parents=True,exist_ok=True)
+          config.write_text(json.dumps({'provider':'keyvalue.immanuel.co','appKey':app,'shards':8,'lastTested':datetime.datetime.now(datetime.timezone.utc).isoformat()},indent=2)+'\n')
+          print('PASS anonymous Arabic scores, save, overwrite, read, CORS. App key:',app,flush=True)
           PY
+      - name: Commit public app key for the shared scoreboard
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add multiplication/leaderboard-service.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Initialize anonymous classroom shared-score storage"
+            git push
+          fi
