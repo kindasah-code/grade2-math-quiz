@@ -1,0 +1,54 @@
+name: Verify anonymous public scoreboard storage
+on:
+  push:
+    paths:
+      - '.github/workflows/score-storage-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Test create, patch, read and browser CORS
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error, uuid, time
+          ns='mh-smoke-'+uuid.uuid4().hex[:16]
+          url='https://mantledb.sh/v2/'+ns+'/class/scores'
+          origin='https://kindasah-code.github.io'
+          print('Test namespace:',ns)
+          def req(method,body=None,headers=None):
+              h={'Origin':origin}
+              if body is not None:h['Content-Type']='application/json'
+              h.update(headers or {})
+              data=json.dumps(body).encode() if body is not None else None
+              r=urllib.request.Request(url,data=data,headers=h,method=method)
+              try:
+                  with urllib.request.urlopen(r,timeout=20) as response:
+                      b=response.read().decode()
+                      print(method,'status',response.status,'CORS',response.headers.get('Access-Control-Allow-Origin'), 'body',b[:600])
+                      return response.status,dict(response.headers),json.loads(b) if b.strip() else None
+              except urllib.error.HTTPError as e:
+                  print(method,'ERROR',e.code,e.read(800).decode(errors='replace'))
+                  raise
+          req('POST',{'players':{}})
+          req('PATCH',{'players':{'a':{'name':'student a','score':12}}})
+          req('PATCH',{'players':{'b':{'name':'student b','score':23}}})
+          status,headers,body=req('GET')
+          assert body['players']['a']['score']==12 and body['players']['b']['score']==23,'Score merge failed'
+          status,headers,body=req('OPTIONS',headers={
+              'Access-Control-Request-Method':'PATCH',
+              'Access-Control-Request-Headers':'content-type'
+          })
+          print('CORS RESPONSE HEADERS:',{k:v for k,v in headers.items() if 'access-control' in k.lower()})
+          cors=headers.get('Access-Control-Allow-Origin') or headers.get('access-control-allow-origin')
+          assert cors in ('*',origin),'Browser CORS origin not allowed: '+str(cors)
+          methods=headers.get('Access-Control-Allow-Methods','') or headers.get('access-control-allow-methods','')
+          assert 'PATCH' in methods.upper(),'PATCH preflight unsupported: '+repr(methods)
+          allowed=headers.get('Access-Control-Allow-Headers','') or headers.get('access-control-allow-headers','')
+          assert '*' in allowed or 'content-type' in allowed.lower(),'Content-type preflight unsupported: '+repr(allowed)
+          print('PASS: cross-device storage and CORS ready')
+          PY
