@@ -15,7 +15,7 @@ const LOCAL_KEY="multiplication-named-local-scores-v2";
 const ar=n=>String(n).replace(/[0-9]/g,d=>String.fromCharCode(0x0660+Number(d)));
 const home=$("home"),results=$("results");
 if(!home||!results)return;
-let currentName="",lastShown=0,publicLoading=false,submitting=false,recent=null,refreshTimer=null;
+let currentName="",lastShown=0,publicLoading=false,refreshQueued=false,submitting=false,recent=null,refreshTimer=null;
 try{currentName=(localStorage.getItem(NAME_KEY)||"").slice(0,20)}catch(e){}
 const cats=[
  ["ch_e0","تحدّي سهل • بدون مؤقّت"],["ch_h0","تحدّي صعب • بدون مؤقّت"],
@@ -207,7 +207,7 @@ function renderLocal(){
  tableRows("lbLocalRows",latestRows(rows));
 }
 async function refresh(){
- if(publicLoading)return;
+ if(publicLoading){refreshQueued=true;return}
  publicLoading=true;$("lbRefresh").disabled=true;
  setStatus("lbRemoteStatus","جارٍ تحميل النتائج العامة...");
  const cat=$("lbCategory").value;
@@ -217,18 +217,18 @@ async function refresh(){
   const rows=latestRows(shards.flat());
   tableRows("lbPublicRows",rows);
   lastShown=Date.now();
-  setStatus("lbRemoteStatus","<small>✓</small> النتائج مشتركة بين الأجهزة • آخر تحديث الآن".replace("<small>✓</small>","✓"));
+  setStatus("lbRemoteStatus","✓ النتائج مشتركة بين الأجهزة • آخر تحديث الآن");
  }catch(e){
   console.warn("Public leaderboard loading failed:",e);
   setStatus("lbRemoteStatus","تعذّر تحميل النتائج العامة حاليًا. اضغط «تحديث» للمحاولة مجددًا. تبقى نتائجك محفوظة محليًا.",true);
- }finally{publicLoading=false;$("lbRefresh").disabled=false}
+ }finally{publicLoading=false;$("lbRefresh").disabled=false;if(refreshQueued){refreshQueued=false;refresh()}}
 }
 async function publish(){
  if(submitting||!recent)return;
  if(!saveName())return;
  submitting=true;$("lbPublish").disabled=true;
  const cat=category(recent),name=currentName,shard=hash(nameKey(name));
- const entry=[name,Math.round(recent.correct),Math.round(recent.answered),Math.max(0,Math.round((Date.now()-recent.started)/1000)),Date.now()];
+ const entry=[name,Math.round(recent.correct),Math.round(recent.answered),recent.duration,Date.now()];
  setStatus("lbPublishStatus","جارٍ حفظ النتيجة العامة...");
  try{
   let confirmed=false,alreadyBetter=false;
@@ -261,12 +261,12 @@ function offer(run){
  if(!nameIsValid(name)){resultCard.hidden=true;return}
  recent={
   mode:run.mode,difficulty:run.difficulty||"easy",seconds:run.seconds||0,
-  correct:run.correct,answered:run.answered,started:run.started
+  correct:run.correct,answered:run.answered,started:run.started,duration:Math.max(0,Math.round((Date.now()-run.started)/1000))
  };
  const cat=category(recent),item={
   name,mode:recent.mode,category:cat,
   correct:recent.correct,answered:recent.answered,
-  duration:Math.max(0,Math.round((Date.now()-recent.started)/1000)),
+  duration:recent.duration,
   difficulty:recent.difficulty,seconds:recent.seconds,at:Date.now()
  };
  saveLocal(item);$("lbLocalCategory").value=cat;renderLocal();
