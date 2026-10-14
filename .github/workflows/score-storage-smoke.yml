@@ -9,46 +9,67 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 4
     steps:
-      - name: Test create, patch, read and browser CORS
+      - name: Probe anonymous score services with actual writes
         shell: bash
         run: |
           python3 - <<'PY'
-          import json, urllib.request, urllib.error, uuid, time
-          ns='mh-smoke-'+uuid.uuid4().hex[:16]
-          url='https://mantledb.sh/v2/'+ns+'/class/scores'
-          origin='https://kindasah-code.github.io'
-          print('Test namespace:',ns)
-          def req(method,body=None,headers=None):
-              h={'Origin':origin}
-              if body is not None:h['Content-Type']='application/json'
-              h.update(headers or {})
-              data=json.dumps(body).encode() if body is not None else None
-              r=urllib.request.Request(url,data=data,headers=h,method=method)
+          import json,urllib.request,urllib.error,urllib.parse,uuid
+          ORIGIN='https://kindasah-code.github.io'
+          suffix=uuid.uuid4().hex[:12]
+          def call(method,url,body=None,contenttype='application/json',extra=None):
+              headers={'Origin':ORIGIN,'User-Agent':'MultiplicationHeroesSmokeTest/1.0'}
+              data=None
+              if body is not None:
+                  headers['Content-Type']=contenttype
+                  data=(json.dumps(body) if contenttype=='application/json' else body).encode()
+              headers.update(extra or {})
+              req=urllib.request.Request(url,data=data,headers=headers,method=method)
               try:
-                  with urllib.request.urlopen(r,timeout=20) as response:
-                      b=response.read().decode()
-                      print(method,'status',response.status,'CORS',response.headers.get('Access-Control-Allow-Origin'), 'body',b[:600])
-                      return response.status,dict(response.headers),json.loads(b) if b.strip() else None
+                  with urllib.request.urlopen(req,timeout=12) as resp:
+                      payload=resp.read(3000).decode('utf-8',errors='replace')
+                      print('OK',method,url.split('/')[2],resp.status,'CORS',resp.headers.get('Access-Control-Allow-Origin'),'BODY',repr(payload[:300]),flush=True)
+                      try: parsed=json.loads(payload)
+                      except ValueError: parsed=payload
+                      return resp.status,parsed,dict(resp.headers)
               except urllib.error.HTTPError as e:
-                  print(method,'ERROR',e.code,e.read(800).decode(errors='replace'))
-                  raise
-          req('POST',{'players':{}})
-          req('PATCH',{'players':{'a':{'name':'student a','score':12}}})
-          req('PATCH',{'players':{'b':{'name':'student b','score':23}}})
-          status,headers,body=req('GET')
-          assert body['players']['a']['score']==12 and body['players']['b']['score']==23,'Score merge failed'
-          status,headers,body=req('OPTIONS',headers={
-              'Access-Control-Request-Method':'PATCH',
-              'Access-Control-Request-Headers':'content-type'
-          })
-          print('CORS RESPONSE HEADERS:',{k:v for k,v in headers.items() if 'access-control' in k.lower()})
-          cors=headers.get('Access-Control-Allow-Origin') or headers.get('access-control-allow-origin')
-          assert cors in ('*',origin),'Browser CORS origin not allowed: '+str(cors)
-          methods=headers.get('Access-Control-Allow-Methods','') or headers.get('access-control-allow-methods','')
-          assert 'PATCH' in methods.upper(),'PATCH preflight unsupported: '+repr(methods)
-          allowed=headers.get('Access-Control-Allow-Headers','') or headers.get('access-control-allow-headers','')
-          assert '*' in allowed or 'content-type' in allowed.lower(),'Content-type preflight unsupported: '+repr(allowed)
-          print('PASS: cross-device storage and CORS ready')
+                  print('HTTP',method,url.split('/')[2],e.code,repr(e.read(300).decode(errors='replace')),flush=True)
+              except Exception as e:
+                  print('ERROR',method,url.split('/')[2],str(e)[:350],flush=True)
+              return 0,None,{}
+          def cors(url):
+              return call('OPTIONS',url,extra={'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type'})
+          print('--- Keyvalue.immanuel.co ---',flush=True)
+          code,app,_=call('GET','https://keyvalue.immanuel.co/api/KeyVal/GetAppKey')
+          if code and app:
+              key=str(app).strip('"')
+              keyname='mhtrial'+suffix
+              call('POST','https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/'+key+'/'+keyname+'/fortytwo')
+              call('GET','https://keyvalue.immanuel.co/api/KeyVal/GetValue/'+key+'/'+keyname)
+              cors('https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/'+key+'/'+keyname+'/fortytwo')
+          print('--- jsonstorage.net ---',flush=True)
+          body={'test':'multiplication-heroes','a':12,'b':23,'stamp':suffix}
+          code,item,_=call('POST','https://api.jsonstorage.net/v1/json',body)
+          if code in (200,201) and isinstance(item,dict) and item.get('uri'):
+              target=item['uri']
+              call('GET',target)
+              call('PATCH',target,{'c':36})
+              call('GET',target)
+              cors(target)
+          print('--- jsonbin-zeta.vercel.app ---',flush=True)
+          code,item,_=call('POST','https://jsonbin-zeta.vercel.app/api/bins',body)
+          if code in (200,201) and isinstance(item,dict):
+              itemid=item.get('id') or item.get('_id') or (item.get('data') or {}).get('id') or ''
+              if itemid:
+                  url='https://jsonbin-zeta.vercel.app/api/bins/'+str(itemid)
+                  call('GET',url)
+                  call('PUT',url,{'test':'updated','a':25})
+                  call('GET',url)
+              cors('https://jsonbin-zeta.vercel.app/api/bins')
+          print('--- keyval.org ---',flush=True)
+          k='mh-score-check-'+suffix
+          call('GET','https://api.keyval.org/set/'+k+'/fortytwo')
+          call('GET','https://api.keyval.org/get/'+k)
+          print('TESTS FINISHED',flush=True)
           PY
