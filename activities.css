@@ -1,0 +1,102 @@
+/* Educational activities hub — scoped to navigation; leaves the Grade 2 quiz styles intact. */
+.activity-directory{
+  --activity-ink:#193c35;
+  --activity-muted:#5e7069;
+  --activity-line:#dce8df;
+  font-family:"Cairo",Tahoma,"Segoe UI",Arial,sans-serif;
+  color:var(--activity-ink);
+  padding:24px 0 26px;
+}
+.activity-directory *{box-sizing:border-box}
+.activity-intro{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+  gap:18px 24px;padding:24px clamp(19px,3.2vw,35px);
+  background:linear-gradient(122deg,#e6f3eb,#f2f7f1 65%,#fff7e9);
+  border:1px solid #d9e8df;border-radius:26px;
+}
+.activity-intro .activity-kicker{
+  color:#206e5c;font-size:.86rem;font-weight:900;letter-spacing:.01em;display:block;margin-bottom:5px;
+}
+.activity-intro h1{font-size:clamp(1.44rem,3.3vw,2.23rem);line-height:1.5;letter-spacing:0;margin:0 0 6px;font-weight:900}
+.activity-intro p{color:#546a62;max-width:510px;margin:0;font-size:.95rem;line-height:1.85}
+.activity-jumps{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.activity-jumps a{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:44px;padding:7px 16px;border:1px solid #c6dbd0;
+ border-radius:999px;background:white;text-decoration:none;color:#176e5b;font-weight:900;font-size:.89rem;
+}
+.activity-jumps a:hover{background:#d9eee4;border-color:#84baa2}
+.activity-grade{margin-top:24px;scroll-margin-top:15px}
+.activity-grade-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:11px;
+}
+.activity-grade-title{display:flex;align-items:center;gap:12px}
+.activity-grade-num{
+ display:grid;place-items:center;min-width:52px;height:52px;padding:0 9px;border-radius:17px;
+ background:#176e5b;color:white;font-size:1.47rem;font-weight:900;line-height:1;
+}
+.activity-grade-four .activity-grade-num{background:#95603a}
+.activity-grade-heading h2{margin:0;font-size:1.29rem;line-height:1.55;font-weight:900}
+.activity-grade-heading p{margin:0;color:#677a6f;font-size:.87rem;line-height:1.5}
+.activity-grade-heading .activity-count{
+ padding:5px 13px;border:1px solid var(--activity-line);background:#fff;border-radius:30px;
+ color:#566f62;font-size:.8rem;font-weight:800;
+}
+.activity-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.activity-card{
+ position:relative;display:flex;flex-direction:column;align-items:flex-start;
+ padding:18px;border:1.5px solid #dce8df;border-radius:21px;
+ background:#fff;color:var(--activity-ink);text-decoration:none;min-height:168px;
+ box-shadow:0 4px 19px rgba(21,72,56,.045);
+ transition:border-color .18s,box-shadow .18s,transform .18s;
+}
+.activity-card:hover{
+ border-color:#88bca3;box-shadow:0 11px 29px rgba(21,72,56,.09);
+ transform:translateY(-2px);color:var(--activity-ink);
+}
+.activity-card:focus-visible,.activity-jumps a:focus-visible{outline:3px solid #da8f36;outline-offset:4px}
+.activity-card .activity-icon{
+ display:grid;place-items:center;height:43px;width:43px;border-radius:13px;
+ background:#e7f5ec;margin-bottom:9px;font-size:1.5rem;line-height:1;
+}
+.activity-card .activity-icon.amber{background:#fff0dc}
+.activity-card .activity-icon.blue{background:#e8f2fc}
+.activity-card .activity-icon.lilac{background:#f1eafa}
+.activity-card h3{
+ margin:0 0 5px;font-size:1.04rem;line-height:1.6;font-weight:900;
+}
+.activity-card p{margin:0 0 8px;color:#587069;font-size:.82rem;line-height:1.75}
+.activity-card .activity-open{
+ margin-top:auto;display:inline-flex;align-items:center;gap:5px;
+ color:#176e5b;font-weight:900;font-size:.84rem;
+}
+.activity-grade-four .activity-card .activity-open{color:#805431}
+.activity-directory-note{
+ display:flex;justify-content:flex-start;gap:10px;align-items:center;margin:22px 0 0;
+ padding:10px 15px;background:#f4f7f2;border:1px solid #e0e8de;border-radius:14px;
+ color:#60716b;font-size:.8rem;line-height:1.7;
+}
+.activity-quiz-divider{height:1px;background:#dce6df;margin-top:4px}
+@media(max-width:900px){
+ .activity-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .activity-card{min-height:163px}
+}
+@media(max-width:570px){
+ .activity-directory{padding:14px 0 19px}
+ .activity-intro{padding:17px 16px;border-radius:20px;gap:10px}
+ .activity-intro p{font-size:.82rem}
+ .activity-jumps{width:100%}
+ .activity-jumps a{flex:1;font-size:.85rem}
+ .activity-grade{margin-top:22px}
+ .activity-grade-heading h2{font-size:1.15rem}
+ .activity-grade-num{height:44px;min-width:44px;font-size:1.25rem;border-radius:12px}
+ .activity-grade-heading .activity-count{font-size:.72rem;padding:4px 9px}
+ .activity-cards{grid-template-columns:1fr;gap:9px}
+ .activity-card{min-height:0;display:grid;grid-template-columns:45px 1fr;column-gap:12px;row-gap:0;padding:12px 14px;border-radius:16px}
+ .activity-card .activity-icon{grid-row:1/4;grid-column:1;width:43px;height:43px;margin:2px 0 0}
+ .activity-card h3{grid-column:2;font-size:.96rem;margin:0 0 2px}
+ .activity-card p{grid-column:2;font-size:.79rem;margin:0 0 2px}
+ .activity-card .activity-open{grid-column:2;font-size:.76rem}
+ .activity-directory-note{font-size:.76rem;padding:8px 10px;margin-top:17px}
+}
+@media(prefers-reduced-motion:reduce){.activity-card{transition:none}.activity-card:hover{transform:none}}
