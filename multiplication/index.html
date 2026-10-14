@@ -48,6 +48,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:no
 @media(max-width:410px){.choices-grid{gap:8px}.choice-option{min-height:63px;font-size:1.7rem}.game-head .chip{font-size:.79rem;padding:5px 9px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
+<link rel="stylesheet" href="./leaderboard.css">
 </head>
 <body>
 <div class="shell">
@@ -390,6 +391,8 @@ function finish(reason){
  for(const x of wrong){const li=document.createElement("li");li.textContent=digits(x.a)+" × "+digits(x.b)+" = "+digits(x.expected)+" (كانت "+digits(x.got)+")";list.appendChild(li)}
  misses.hidden=!wrong.length;
  lastMode=s.mode;lastTable=s.table;
+ // Offer public publishing only after a challenge ends; game remains functional offline.
+ try{if(window.MasteryLeaderboard && typeof window.MasteryLeaderboard.offer==="function")window.MasteryLeaderboard.offer(s)}catch(e){}
 }
 const answerField=$("answer");
 answerField.addEventListener("input",()=>{
@@ -439,5 +442,6 @@ $("reset").addEventListener("click",()=>{if(confirm("هل تريد مسح جمي
 dashboard();
 })();
 </script>
+<script src="./leaderboard.js"></script>
 </body>
 </html>
