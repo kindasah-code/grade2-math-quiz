@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#215865">
+<meta name="description" content="مذكرة تفاعلية للدراسات الإسلامية للصف الثاني الابتدائي، مراجعة نصف الفترة: ١٠ دروس، ٣٠ بطاقة مراجعة، واختبار ٤٠ سؤالًا مع التصحيح والتفسير الفوري.">
+<title>رحلة القيم | الدراسات الإسلامية – رابع ابتدائي</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23215865'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='39'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="./styles.css">
+<script defer src="./app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">تخطَّ إلى المحتوى</a>
+<div class="app-shell">
+<header class="topbar">
+  <a class="brand" href="./" aria-label="رحلة القيم، العودة إلى البداية">
+    <span class="brand-mark" aria-hidden="true">✦</span>
+    <span>رحلة القيم <small>نتعلّم ونُطبّق</small></span>
+  </a>
+  <nav class="main-tabs" aria-label="أقسام الموقع">
+    <button class="tab is-active" type="button" data-view="learn" aria-current="page">📖 المذكرة</button>
+    <button class="tab" type="button" data-view="cards">🗂️ بطاقات المراجعة</button>
+    <button class="tab" type="button" data-view="quiz">✍️ الاختبار</button>
+  </nav>
+</header>
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <span class="eyebrow"><span class="pulse-dot"></span> الدراسات الإسلامية · الصف الرابع الابتدائي</span>
+    <h1 id="hero-title">مراجعة نصف الفترة<br><em>الدراسات الإسلامية</em></h1>
+    <p>نتعلّم أركان العبادة وأنواع التوحيد، وأسماء الله الحسنى، والماء الطهور، ونسب النبي ﷺ وفضائله. شرح مبسّط يتبعه تدريب وبطاقات مراجعة واختبار شامل.</p>
+    <div class="hero-meta"><span>📘 التوحيد والطهارة والسيرة</span><span>⭐ ١٠ دروس</span><span>🎯 ٤٠ سؤالًا</span></div>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+    <span class="planet planet-leaf">🤲</span><span class="planet planet-dna">📖</span>
+    <span class="planet planet-butterfly">💧</span><span class="planet planet-fish">🌿</span>
+    <span class="planet planet-frog">🌧️</span>
+    <span class="center-orbit">🕌</span>
+  </div>
+</section>
+<div class="progress-strip" aria-label="تقدم المذاكرة">
+  <div class="progress-label"><span>✨ إنجاز الدروس</span><strong id="done-label">٠ من ١٠</strong></div>
+  <div class="progress-track"><span class="progress-fill" id="study-progress"></span></div>
+  <p class="progress-hint">أكمل السؤال القصير في نهاية كل درس لتسجّل إنجازك.</p>
+</div>
+<section class="study-layout" id="view-learn" aria-label="المذكرة التعليمية">
+  <aside class="study-sidebar">
+    <div class="sidebar-head"><span>خارطة المراجعة</span><small>اختر الدرس الذي تريد مذاكرته</small></div>
+    <div id="lesson-nav" class="lesson-nav"></div>
+    <button class="sidebar-quiz" type="button" data-view="quiz">جاهز للاختبار؟ <span>↗</span></button>
+  </aside>
+  <div class="study-main">
+    <div id="lesson-content" aria-live="polite"></div>
+    <div class="lesson-pagination">
+      <button type="button" id="previous-lesson" class="button ghost">→ الدرس السابق</button>
+      <button type="button" id="next-lesson" class="button primary">الدرس التالي ←</button>
+    </div>
+  </div>
+</section>
+<section id="view-cards" class="standalone" hidden aria-label="بطاقات المراجعة">
+  <div class="section-heading"><span class="chapter-kicker">أراجع وأتذكر</span><h2>بطاقات المراجعة</h2><p>اقرأ السؤال، حاول أن تجيب بنفسك، ثم اضغط البطاقة لتكشف الإجابة.</p></div>
+  <div class="flash-grid" id="flash-grid"></div>
+</section>
+<section id="view-quiz" class="standalone" hidden aria-label="الاختبار التفاعلي">
+  <div id="quiz-content"></div>
+</section>
+</main>
+<footer class="footer">
+  <div>
+    <strong>📖 رحلة القيم</strong>
+    <p>مذكرة تدريبية تفاعلية مبنية على ورقة «مراجعة ما تم دراسته لمادة الدراسات الإسلامية – الصف الرابع»، من إعداد معلم المادة. شُرحت النقاط بأسلوب مبسّط، مع تمييز الاستكمال التعليمي عن نص ورقة المراجعة.</p>
+  </div>
+  <div class="footer-links">
+    <a href="../islamic-grade2/">الدراسات الإسلامية – الصف الثاني ↗</a>
+    <a href="../science-grade4/" target="_blank" rel="noopener noreferrer">مذكرة العلوم – الصف الرابع ↗</a>
+    <a href="../" target="_blank" rel="noopener noreferrer">التدريبات الأخرى ↗</a>
+  </div>
+  <small>ملاحظة: تذكر ورقة المعلم عدد أنواع التوحيد الثلاثة لكنها تشرح الربوبية والألوهية فقط؛ أُكمل النوع الثالث للتوضيح. أحكام الماء مصاغة بما يوافق أمثلة الورقة دون تفصيل فقهي موسّع. التدريبات غير رسمية، والتقدم محفوظ محليًا.</small>
+</footer>
+</div>
+<noscript><div class="nojs">يرجى تفعيل JavaScript لعرض المذكرة التفاعلية والاختبار.</div></noscript>
+</body>
+</html>
