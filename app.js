@@ -32,7 +32,8 @@
   function focusTop(selector='h1'){
     const el=main.querySelector(selector);
     if(el){el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}
-    window.scrollTo({top:0,behavior:'instant'});
+    // The educational activities library sits above the math quiz. Keep navigation inside the quiz.
+    main.scrollIntoView({block:'start',behavior:'auto'});
   }
   function dots(n,extra=false,object){return Array.from({length:n},(_,i)=>object==='pencil'?'<span class="pencil" aria-hidden="true">✏️</span>':`<i class="dot${extra&&i===n-1?' extra':''}" aria-hidden="true"></i>`).join('');}
   function blocks(tens,ones){return `<div class="blocks"><div class="tens">${'<i class="rod"></i>'.repeat(tens)}</div><div class="ones">${'<i class="cube"></i>'.repeat(ones)}</div></div>`;}
