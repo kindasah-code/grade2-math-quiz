@@ -48,12 +48,22 @@ jobs:
           if not re.fullmatch(r"[A-Za-z0-9]{16,50}",bid):
               raise RuntimeError("Provider returned an unexpected bucket id: "+repr(reply)[:160])
           key=api+"/"+bid+"/health"
-          req=urllib.request.Request(key,data=b"ready",headers={"Content-Type":"text/plain"},method="PUT")
-          with urllib.request.urlopen(req,timeout=20) as response:
-              print("Health key stored:",response.status)
+          print("Testing provider bucket:",bid)
+          success=False
+          for method, content_type in [("POST","text/plain"),("PUT","text/plain"),("POST","application/json")]:
+              body=b"ready" if content_type=="text/plain" else b'{"ready":true}'
+              req=urllib.request.Request(key,data=body,headers={"Content-Type":content_type},method=method)
+              try:
+                  with urllib.request.urlopen(req,timeout=12) as response:
+                      print("Key write success:",method,content_type,response.status)
+                  success=True
+                  break
+              except urllib.error.HTTPError as exc:
+                  print("Write error:",method,content_type,exc.code,exc.read(180).decode("utf-8",errors="replace"))
+          if not success:raise RuntimeError("Storage provider rejected public score writes")
           with urllib.request.urlopen(key,timeout=20) as response:
               got=response.read().decode("utf-8")
-          if got!="ready":raise RuntimeError("New bucket failed read-back")
+          if got not in ("ready",'{"ready":true}'):raise RuntimeError("New bucket failed read-back")
           item={"provider":"kvdb","bucketId":bid,"createdAt":now.isoformat(),"expiresAt":(now+timedelta(hours=48)).isoformat()}
           p.write_text(json.dumps(item,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           print("Created temporary public board, expires:",item["expiresAt"])
