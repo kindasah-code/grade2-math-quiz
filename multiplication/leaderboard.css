@@ -33,3 +33,25 @@
  .lb-table td{font-size:.81rem}
  .lb-table th{font-size:.68rem}
 }
+
+/* Shared classroom scoreboard and publish result */
+.lb-board-section{margin:22px 0 10px}
+.lb-board-section>.section-title{margin:25px 0 12px}
+.lb-public{padding:20px}
+.lb-public .settings-note{line-height:1.65;margin:7px 0 13px}
+.lb-public .lb-controls{margin:12px 0}
+.lb-public .lb-controls .select{max-width:410px}
+.lb-public .lb-controls .btn{flex:0 0 auto}
+.lb-public .lb-message{margin:12px 0;min-height:20px}
+.lb-disclaimer{border-top:1px solid #e7efec;padding-top:12px;margin-top:15px!important}
+.lb-result .btn{margin-top:9px}
+.lb-result h3{font-size:1.17rem}
+.lb-result .lb-message{padding:7px 0;min-height:27px}
+.lb-local-board{margin-top:12px}
+@media(max-width:700px){
+ .lb-public{padding:16px}
+ .lb-public .lb-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px}
+ .lb-public .lb-controls label{grid-column:1/-1}
+ .lb-public .lb-controls .select{width:100%;min-width:0;max-width:none}
+ .lb-public .lb-controls .btn{padding:11px 13px}
+}
