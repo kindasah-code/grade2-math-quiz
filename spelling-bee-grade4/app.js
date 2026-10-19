@@ -194,6 +194,7 @@
   }
   function currentWord() { return game && getWord(game.items[game.index]); }
   function timerMarkup() {
+    if (game.phase !== "question") return '<span class="game-label">تمّ</span>';
     return game.seconds > 0 ? '<span id="clock" class="timer" aria-label="الوقت المتبقي">' + game.seconds + 's</span>' : '<span class="game-label">بدون مؤقّت</span>';
   }
   function gameFrame(content) {
