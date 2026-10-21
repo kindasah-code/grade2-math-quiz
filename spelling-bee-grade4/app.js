@@ -11,6 +11,9 @@
   var game = null;
   var tick = null;
   var noticeTimer = null;
+  var speechGeneration = 0;
+  var letterPauseTimer = null;
+  var activeUtterance = null;
   var wordMap = new Map(WORDS.map(function (w) { return [w.id, w]; }));
   var info = {
     practice: {icon:"✏️", title:"تدريب الاستماع والكتابة", description:"استمع للكلمة، واكتب حروفها بنفسك. يمكنك طلب تلميح بالمعنى، وستظهر الإجابة الصحيحة فورًا بعد المحاولة.", start:"ابدأ التدريب", label:"تدريب بلا مؤقّت"},
@@ -31,46 +34,95 @@
   function spokenWord(word) { return String(word).replace(/[()]/g, "").replace(/[-‐‑–—]/g, " ").replace(/\s+/g, " ").trim(); }
   function getWord(id) { return wordMap.get(Number(id)); }
   function hasSpeech() { return "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance === "function"; }
-  function englishVoice() {
-    var all = window.speechSynthesis.getVoices();
-    var english = all.filter(function (voice) { return /^en([-_]|$)/i.test(voice.lang); });
-    english.sort(function (a,b) {
-      function rank(v) {
-        var locale = (v.lang || "").toLowerCase();
-        var name = (v.name || "").toLowerCase();
-        return (locale.startsWith("en-us") ? 30 : 0) + (/(natural|google|samantha|aria|zira)/.test(name) ? 10 : 0) + (v.localService ? 1 : 0);
+  function americanVoice() {
+    // Never choose an en-GB or other English accent as a substitute for en-US.
+    var voices = window.speechSynthesis.getVoices().filter(function (voice) {
+      return /^en[-_]US(?:[-_]|$)/i.test(String(voice.lang || ""));
+    });
+    voices.sort(function (a, b) {
+      function rank(voice) {
+        return (/(natural|google|samantha|aria|zira)/i.test(voice.name || "") ? 10 : 0) +
+          (voice.localService ? 1 : 0);
       }
       return rank(b) - rank(a);
     });
-    return english[0] || null;
+    return voices[0] || null;
+  }
+  function makeUtterance(text, voice, rate, generation) {
+    var utterance = new window.SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.voice = voice;
+    utterance.rate = rate;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    utterance.onerror = function (event) {
+      if (generation !== speechGeneration) return;
+      stopVoice();
+      if (event && !["interrupted", "canceled"].includes(event.error)) {
+        alertNotice("تعذّر تشغيل الصوت. تأكد من مستوى صوت الجهاز، ثم اضغط زر السماعة مجددًا.");
+      }
+    };
+    return utterance;
+  }
+  function spellingLetters(text) {
+    var tokens = [];
+    spokenWord(text).toUpperCase().split(/\s+/).forEach(function (word) {
+      var letters = word.replace(/[^A-Z]/g, "").split("");
+      letters.forEach(function (letter, index) {
+        tokens.push({ letter:letter, lastInWord:index === letters.length - 1 });
+      });
+    });
+    return tokens;
   }
   function speak(id, how) {
     var word = getWord(id);
     if (!word) return false;
-    if (!hasSpeech()) { alertNotice("الصوت غير مدعوم في هذا المتصفح. افتح النشاط باستخدام Chrome أو Edge مع تفعيل الصوت."); return false; }
-    var voiceText = spokenWord(word.word);
-    if (how === "letters") {
-      voiceText = voiceText.toUpperCase().split(/\s+/).map(function (segment) {
-        return segment.replace(/[^A-Z]/g, "").split("").join(", ");
-      }).join(".  ");
+    if (!hasSpeech()) {
+      alertNotice("الصوت غير مدعوم في هذا المتصفح. افتح النشاط باستخدام Chrome أو Edge مع تفعيل الصوت.");
+      return false;
     }
+    stopVoice();
+    var voice = americanVoice();
+    if (!voice) {
+      alertNotice("الصوت الأمريكي غير متاح على هذا الجهاز. فعّل أو ثبّت صوت English (United States) في إعدادات تحويل النص إلى كلام، ثم أعد تحميل الصفحة.");
+      return false;
+    }
+    var generation = speechGeneration;
     try {
-      window.speechSynthesis.cancel();
-      var utterance = new window.SpeechSynthesisUtterance(voiceText);
-      utterance.lang = "en-US";
-      var voice = englishVoice();
-      if (voice) { utterance.voice = voice; utterance.lang = voice.lang; }
-      utterance.rate = how === "slow" ? 0.64 : how === "letters" ? 0.72 : 0.86;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      utterance.onerror = function (event) {
-        if (event && !["interrupted","canceled"].includes(event.error)) {
-          alertNotice("تعذّر تشغيل الصوت. تأكد من مستوى صوت الجهاز، ثم اضغط زر السماعة مجددًا.");
+      if (how === "letters") {
+        // Separate utterances and real silence ensure adjacent letter names never merge.
+        var letters = spellingLetters(word.word);
+        if (!letters.length) return false;
+        function playLetter(index) {
+          if (generation !== speechGeneration || index >= letters.length) return;
+          var item = letters[index];
+          var utterance = makeUtterance(item.letter, voice, 0.84, generation);
+          activeUtterance = utterance;
+          utterance.onend = function () {
+            if (generation !== speechGeneration) return;
+            activeUtterance = null;
+            if (index + 1 >= letters.length) return;
+            // Longer gap for a new word in a phrase (e.g., "Back to school").
+            var pauseMs = item.lastInWord ? 750 : 350;
+            letterPauseTimer = setTimeout(function () {
+              letterPauseTimer = null;
+              playLetter(index + 1);
+            }, pauseMs);
+          };
+          window.speechSynthesis.speak(utterance);
         }
-      };
-      window.speechSynthesis.speak(utterance);
+        playLetter(0);
+      } else {
+        var utterance = makeUtterance(spokenWord(word.word), voice, how === "slow" ? 0.64 : 0.86, generation);
+        activeUtterance = utterance;
+        utterance.onend = function () {
+          if (generation === speechGeneration) activeUtterance = null;
+        };
+        window.speechSynthesis.speak(utterance);
+      }
       return true;
     } catch (_) {
+      stopVoice();
       alertNotice("تعذّر تشغيل الصوت على هذا الجهاز. جرّب Chrome أو Edge.");
       return false;
     }
@@ -131,7 +183,15 @@
     return copy;
   }
   function stopTimer() { if (tick !== null) { clearInterval(tick); tick = null; } }
-  function stopVoice() { if (hasSpeech()) window.speechSynthesis.cancel(); }
+  function stopVoice() {
+    speechGeneration++;
+    if (letterPauseTimer !== null) {
+      clearTimeout(letterPauseTimer);
+      letterPauseTimer = null;
+    }
+    activeUtterance = null;
+    if (hasSpeech()) window.speechSynthesis.cancel();
+  }
   function switchTab(next) {
     if (!["study","practice","exam","oral","progress"].includes(next)) return;
     if (game && !game.done && next !== game.mode) {
@@ -164,7 +224,7 @@
       '<div class="setting"><label for="' + mode + '-count">عدد الأسئلة</label><select id="' + mode + '-count"><option value="10">١٠ كلمات</option><option value="20" selected>٢٠ كلمة</option><option value="50">٥٠ كلمة</option><option value="100">١٠٠ كلمة (كامل القائمة)</option></select><div class="helper">إذا كانت المجموعة أصغر، تُستخدم جميع كلماتها دون تكرار.</div></div>' +
       (mode === "practice" ? '' : '<div class="setting wide"><label for="' + mode + '-seconds">الوقت المسموح لكل كلمة</label><select id="' + mode + '-seconds"><option value="0">بدون مؤقّت</option><option value="15">١٥ ثانية</option><option value="30" selected>٣٠ ثانية</option><option value="45">٤٥ ثانية</option><option value="60">٦٠ ثانية</option></select><div class="helper">المدرسة تشترط وقتًا محددًا لكنها لم تذكر عدد الثواني، لذلك تستطيع تحديده هنا.</div></div>') +
       '</div><div class="setup-footer"><button type="button" class="primary-btn" data-start="' + mode + '">' + detail.start + ' ←</button>' +
-      '<span class="setup-disclaimer">🔊 يعتمد النشاط على النطق الإنجليزي في جهازك. شغّل الصوت قبل الاختبار.</span></div></div></div>';
+      '<span class="setup-disclaimer">🔊 نطق أمريكي (en-US). تُقرأ الحروف منفصلة مع وقفات واضحة. قد تحتاج إلى تثبيت صوت English (United States) على جهازك.</span></div></div></div>';
   }
   function startGame(mode, overrideIds) {
     if (!hasSpeech()) {
