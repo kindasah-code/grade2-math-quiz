@@ -16,7 +16,7 @@
   var activeUtterance = null;
   var wordMap = new Map(WORDS.map(function (w) { return [w.id, w]; }));
   var info = {
-    practice: {icon:"✏️", title:"تدريب الاستماع والكتابة", description:"استمع للكلمة، واكتب حروفها بنفسك. يمكنك طلب تلميح بالمعنى، وستظهر الإجابة الصحيحة فورًا بعد المحاولة.", start:"ابدأ التدريب", label:"تدريب بلا مؤقّت"},
+    practice: {icon:"✏️", title:"تدريب الاستماع والكتابة", description:"استمع للكلمة، واكتب حروفها بنفسك. اطلب تلميحات متدرجة عند الحاجة، وتعلم من أخطائك مع فرصة لإعادة المحاولة.", start:"ابدأ التدريب", label:"تدريب بلا مؤقّت"},
     exam: {icon:"🎧", title:"اختبار الإملاء الصوتي", description:"لن تظهر الكلمة مكتوبة. استمع إلى الصوت ثم اكتب ما سمعته. لا توجد تلميحات أو تصحيحات حتى انتهاء الاختبار.", start:"ابدأ الاختبار الصوتي", label:"النتيجة بعد الانتهاء"},
     oral: {icon:"🎤", title:"تحدّي التهجئة الشفهية", description:"مثل مسابقة المدرسة: استمع، انطق الكلمة، تهجّأ حروفها بصوت مرتفع، ثم أعِد نطقها. اكشف الإجابة وقيّم نفسك.", start:"ابدأ التحدي الشفهي", label:"Say it · Spell it · Seal it"}
   };
@@ -160,6 +160,7 @@
         '<div class="word-top"><span class="word-number">#' + w.id + '</span><div class="word-actions">' +
         '<button type="button" class="icon-btn" data-speak-id="' + w.id + '" aria-label="اسمع كلمة ' + html(w.word) + '" title="اسمع الكلمة">🔊</button>' +
         '<button type="button" class="icon-btn" data-letters-id="' + w.id + '" aria-label="اسمع تهجئة ' + html(w.word) + '" title="اسمع الحروف">🔡</button>' +
+        '<button type="button" class="icon-btn" data-slow-id="' + w.id + '" aria-label="استمع ببطء إلى كلمة ' + html(w.word) + '" title="نطق بطيء">🐢</button>' +
         '<button type="button" class="icon-btn' + (starred ? ' starred' : '') + '" data-star-id="' + w.id + '" aria-pressed="' + starred + '" aria-label="حفظ كلمة ' + html(w.word) + ' للمراجعة" title="إضافة للمراجعة">⭐</button>' +
         '</div></div><div class="word-en" lang="en">' + html(w.word) + '</div><div class="word-ar">' + html(w.meaning) + '</div>' +
         (NOTES[w.id] ? '<p class="source-note">' + html(NOTES[w.id]) + '</p>' : '') +
@@ -221,7 +222,7 @@
       '<span class="kicker">' + detail.label + '</span><h2>' + detail.title + '</h2><p>' + detail.description + '</p>' +
       '<div class="settings">' +
       '<div class="setting"><label for="' + mode + '-pool">اختر الكلمات</label><select id="' + mode + '-pool">' + poolOptions + '</select><div class="helper">المجموعات من ٢٠ كلمة؛ ويمكنك مراجعة الكلمات التي أخطأت فيها.</div></div>' +
-      '<div class="setting"><label for="' + mode + '-count">عدد الأسئلة</label><select id="' + mode + '-count"><option value="10">١٠ كلمات</option><option value="20" selected>٢٠ كلمة</option><option value="50">٥٠ كلمة</option><option value="100">١٠٠ كلمة (كامل القائمة)</option></select><div class="helper">إذا كانت المجموعة أصغر، تُستخدم جميع كلماتها دون تكرار.</div></div>' +
+      '<div class="setting"><label for="' + mode + '-count">عدد الأسئلة</label><select id="' + mode + '-count"><option value="5">٥ كلمات (تدريب سريع)</option><option value="10">١٠ كلمات</option><option value="20" selected>٢٠ كلمة</option><option value="50">٥٠ كلمة</option><option value="100">١٠٠ كلمة (كامل القائمة)</option></select><div class="helper">إذا كانت المجموعة أصغر، تُستخدم جميع كلماتها دون تكرار.</div></div>' +
       (mode === "practice" ? '' : '<div class="setting wide"><label for="' + mode + '-seconds">الوقت المسموح لكل كلمة</label><select id="' + mode + '-seconds"><option value="0">بدون مؤقّت</option><option value="15">١٥ ثانية</option><option value="30" selected>٣٠ ثانية</option><option value="45">٤٥ ثانية</option><option value="60">٦٠ ثانية</option></select><div class="helper">المدرسة تشترط وقتًا محددًا لكنها لم تذكر عدد الثواني، لذلك تستطيع تحديده هنا.</div></div>') +
       '</div><div class="setup-footer"><button type="button" class="primary-btn" data-start="' + mode + '">' + detail.start + ' ←</button>' +
       '<span class="setup-disclaimer">🔊 نطق أمريكي (en-US). تُقرأ الحروف منفصلة مع وقفات واضحة. قد تحتاج إلى تثبيت صوت English (United States) على جهازك.</span></div></div></div>';
@@ -268,6 +269,7 @@
     var w = currentWord();
     if (!w) { finishGame(); return; }
     game.phase = "question";
+    game.hintsShown = 0;
     var isOral = game.mode === "oral";
     var isPractice = game.mode === "practice";
     var content = '<p class="stage-badge">' + (isOral ? '🎤 تحدّي شفهي' : '🎧 اسمع الكلمة ثم أجب') + '</p>' +
@@ -281,7 +283,7 @@
     } else {
       content += '<label class="sr-label" for="spelling-answer">اكتب الكلمة باللغة الإنجليزية</label>' +
         '<input id="spelling-answer" class="answer-input" type="text" lang="en" dir="ltr" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type the word..." aria-label="اكتب الكلمة بالإنجليزية">' +
-        (isPractice ? '<div class="answer-actions"><button type="button" class="secondary-btn small-btn" data-action="hint">💡 أريد تلميحًا بالمعنى</button></div><div id="meaning-hint" class="letter-hint" hidden></div>' : '') +
+        (isPractice ? '<div class="answer-actions"><button type="button" id="hint-button" class="secondary-btn small-btn" data-action="hint">💡 تلميح ١: المعنى</button></div><div id="meaning-hint" class="letter-hint" role="status" hidden></div>' : '') +
         '<div class="answer-actions"><button type="button" class="primary-btn" data-action="submit">تأكيد الإجابة ✓</button></div>';
     }
     document.getElementById(game.mode + "-content").innerHTML = gameFrame(content);
@@ -351,6 +353,30 @@
     updateWordStats(currentWord().id,!!correct);
     nextQuestion();
   }
+
+  function spellingTip(typed, wordText) {
+    var goal = normalize(spokenWord(wordText)).toUpperCase();
+    var attempted = normalize(typed).toUpperCase();
+    if (!attempted) return "استمع إلى الكلمة وحاول كتابة كل حروفها من الذاكرة.";
+    var i = 0;
+    while (i < Math.min(goal.length,attempted.length) && goal[i] === attempted[i]) i++;
+    var letter = function (value) { return '<b class="letter-example" lang="en" dir="ltr">' + html(value) + '</b>'; };
+    if (goal.length === attempted.length + 1 && goal.slice(0,i) + goal.slice(i+1) === attempted) {
+      return "نسيت حرف " + letter(goal[i]) + "؛ ركّز على موضعه ثم حاول مجددًا.";
+    }
+    if (attempted.length === goal.length + 1 && attempted.slice(0,i) + attempted.slice(i+1) === goal) {
+      return "أضفت حرف " + letter(attempted[i]) + " بالخطأ. حاول من دون هذا الحرف.";
+    }
+    if (goal.length === attempted.length && attempted[i] === goal[i+1] && attempted[i+1] === goal[i] &&
+        attempted.slice(i+2) === goal.slice(i+2)) {
+      return "انتبه لترتيب الحرفين " + letter(goal.slice(i,i+2)) + "، فقد كتبتَهما بالعكس.";
+    }
+    if (goal.length === attempted.length && attempted.slice(i+1) === goal.slice(i+1)) {
+      return "هنا الحرف الصحيح هو " + letter(goal[i]) + " بدلًا من " + letter(attempted[i]) + ".";
+    }
+    var focus = goal.slice(Math.max(0,i-1),Math.min(goal.length,i+4));
+    return "راجع هذا الجزء من الكلمة: " + letter(focus) + "، ثم جرّب التهجئة مرة أخرى.";
+  }
   function renderFeedback() {
     if (!game || game.phase !== "feedback") return;
     var last = game.results[game.results.length-1], w = currentWord();
@@ -360,11 +386,56 @@
       '<div class="reveal' + (!last.correct ? ' bad' : '') + '"><strong lang="en">' + html(w.word) + '</strong><p>' + html(w.meaning) + '</p>' +
       (!last.correct && last.typed ? '<p class="review-note">إجابتك: <span lang="en" dir="ltr">' + html(last.typed) + '</span></p>' : '') +
       (NOTES[w.id] ? '<p class="source-note">' + html(NOTES[w.id]) + '</p>' : '') + '</div>' +
+      (!last.correct ? '<p class="mistake-tip">🧩 ' + spellingTip(last.typed,w.word) + '</p>' : '') +
       '<div class="sound-buttons"><button type="button" class="secondary-btn small-btn" data-action="replay">🔊 سماع الكلمة</button>' +
       '<button type="button" class="secondary-btn small-btn" data-action="letters">🔡 سماع التهجئة حرفًا حرفًا</button></div>' +
-      '<div class="answer-actions"><button type="button" class="primary-btn" data-action="next">' +
+      '<div class="answer-actions">' + (!last.correct && game.mode === "practice" ? '<button type="button" class="primary-btn" data-action="retry">🔁 أحاول مجددًا</button>' : '') +
+      '<button type="button" class="secondary-btn" data-action="next">' +
       (game.index + 1 >= game.items.length ? '🏆 عرض نتيجتي' : 'الكلمة التالية ←') + '</button></div>';
     document.getElementById(game.mode + "-content").innerHTML = gameFrame(content);
+  }
+
+  function showRetry() {
+    if (!game || game.mode !== "practice" ||
+        !["feedback","retry-feedback"].includes(game.phase) ||
+        (game.phase === "feedback" && game.results[game.results.length-1].correct)) return;
+    game.phase = "retry";
+    var content = '<p class="stage-badge">🔁 فرصة ثانية للتعلّم</p>' +
+      '<p class="subtext">الإجابة مخفية الآن. استمع ثم اكتب الكلمة مرة أخرى من الذاكرة.</p>' +
+      '<button type="button" class="speaker" data-action="replay" aria-label="استمع إلى الكلمة">🔊</button>' +
+      '<div class="sound-buttons"><button type="button" class="secondary-btn small-btn" data-action="replay">🔊 إعادة الاستماع</button>' +
+      '<button type="button" class="secondary-btn small-btn" data-action="slow">🐢 نطق بطيء</button></div>' +
+      '<label class="sr-label" for="retry-answer">اكتب الكلمة مرة أخرى</label>' +
+      '<input id="retry-answer" class="answer-input" type="text" lang="en" dir="ltr" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type the word...">' +
+      '<div class="answer-actions"><button type="button" class="primary-btn" data-action="check-retry">تحقّق من المحاولة ✓</button>' +
+      '<button type="button" class="secondary-btn" data-action="reveal-again">عرض التصحيح</button></div>' +
+      '<p class="retry-note">هذه فرصة للتعلّم؛ لن تغيّر نتيجة المحاولة الأولى.</p>';
+    document.getElementById("practice-content").innerHTML = gameFrame(content);
+    speak(currentWord().id,"normal");
+    var field = document.getElementById("retry-answer");
+    if (field) field.focus();
+  }
+  function checkRetry() {
+    if (!game || game.mode !== "practice" || game.phase !== "retry") return;
+    var field = document.getElementById("retry-answer");
+    var typed = field ? field.value.trim() : "";
+    if (!typed) { alertNotice("اكتب الكلمة أولًا، أو استمع مرة أخرى."); if (field) field.focus(); return; }
+    var w = currentWord();
+    var correct = normalize(typed) === normalize(spokenWord(w.word));
+    game.phase = "retry-feedback";
+    var content = '<div class="feedback-title' + (correct ? '' : ' bad') + '">' +
+      (correct ? '🌟 أحسنت! تهجّأتها بشكل صحيح هذه المرة.' : '💡 قريب! لنتعلم من هذه المحاولة.') + '</div>' +
+      (!correct ? '<p class="mistake-tip">🧩 ' + spellingTip(typed,w.word) + '</p>' : '') +
+      '<div class="reveal' + (correct ? '' : ' bad') + '"><strong lang="en">' + html(w.word) +
+      '</strong><p>' + html(w.meaning) + '</p></div>' +
+      '<div class="sound-buttons"><button type="button" class="secondary-btn small-btn" data-action="replay">🔊 الكلمة</button>' +
+      '<button type="button" class="secondary-btn small-btn" data-action="letters">🔡 الحروف</button></div>' +
+      '<div class="answer-actions">' +
+      (!correct ? '<button type="button" class="primary-btn" data-action="retry">🔁 أحاول مجددًا</button>' : '') +
+      '<button type="button" class="secondary-btn" data-action="next">' +
+      (game.index + 1 >= game.items.length ? '🏆 عرض نتيجتي' : 'الكلمة التالية ←') + '</button></div>' +
+      '<p class="retry-note">تظل نتيجة المحاولة الأولى كما هي؛ هذه المحاولة للتعلم فقط.</p>';
+    document.getElementById("practice-content").innerHTML = gameFrame(content);
   }
   function nextQuestion() {
     if (!game || game.done) return;
@@ -434,13 +505,29 @@
       if (word) speak(word.id, action === "slow" ? "slow" : action === "letters" ? "letters" : "normal");
       return;
     }
+    if (action === "quick-five") { startGame("practice",shuffled(WORDS).slice(0,5).map(function (w) { return w.id; })); return; }
     if (action === "submit") { submitAnswer(false); return; }
     if (action === "hint" && game && game.mode === "practice" && game.phase === "question") {
       var hint = document.getElementById("meaning-hint");
-      if (hint) { hint.textContent = "💡 المعنى: " + currentWord().meaning + " · عدد الحروف: " + ar(normalize(spokenWord(currentWord().word)).length); hint.hidden = false; }
+      var button = document.getElementById("hint-button");
+      if (!hint || game.hintsShown >= 2) return;
+      var w = currentWord();
+      game.hintsShown++;
+      if (game.hintsShown === 1) {
+        hint.textContent = "💡 المعنى: " + w.meaning;
+        if (button) button.textContent = "🔤 تلميح ٢: أول حرف";
+      } else {
+        hint.textContent = "💡 المعنى: " + w.meaning + " · أول حرف: " + spokenWord(w.word).charAt(0).toUpperCase() +
+          " · عدد الحروف: " + ar(normalize(spokenWord(w.word)).length);
+        if (button) button.hidden = true;
+      }
+      hint.hidden = false;
       return;
     }
-    if (action === "next" && game && game.phase === "feedback") { nextQuestion(); return; }
+    if (action === "retry") { showRetry(); return; }
+    if (action === "check-retry") { checkRetry(); return; }
+    if (action === "reveal-again" && game && game.phase === "retry") { game.phase = "feedback"; renderFeedback(); return; }
+    if (action === "next" && game && ["feedback","retry-feedback"].includes(game.phase)) { nextQuestion(); return; }
     if (action === "reveal") { revealOral(); return; }
     if (action === "oral-correct") { recordOral(true); return; }
     if (action === "oral-wrong") { recordOral(false); return; }
@@ -459,11 +546,12 @@
     if (action === "practice-stars") { startGame("practice",STORAGE.starred.slice()); return; }
   }
   document.addEventListener("click", function (event) {
-    var node = event.target.closest("button[data-tab],button[data-start],button[data-action],button[data-speak-id],button[data-letters-id],button[data-star-id]");
+    var node = event.target.closest("button[data-tab],button[data-start],button[data-action],button[data-speak-id],button[data-letters-id],button[data-slow-id],button[data-star-id]");
     if (!node) return;
     if (node.dataset.tab) { switchTab(node.dataset.tab); return; }
     if (node.dataset.speakId) { speak(Number(node.dataset.speakId),"normal"); return; }
     if (node.dataset.lettersId) { speak(Number(node.dataset.lettersId),"letters"); return; }
+    if (node.dataset.slowId) { speak(Number(node.dataset.slowId),"slow"); return; }
     if (node.dataset.starId) { toggleStar(Number(node.dataset.starId)); return; }
     if (node.dataset.start) { startGame(node.dataset.start); return; }
     if (node.dataset.action) runAction(node.dataset.action);
@@ -473,6 +561,8 @@
   document.addEventListener("keydown", function (event) {
     if (event.key === "Enter" && event.target && event.target.id === "spelling-answer") {
       event.preventDefault(); submitAnswer(false);
+    } else if (event.key === "Enter" && event.target && event.target.id === "retry-answer") {
+      event.preventDefault(); checkRetry();
     }
   });
   window.addEventListener("pagehide", function () { stopTimer(); stopVoice(); });

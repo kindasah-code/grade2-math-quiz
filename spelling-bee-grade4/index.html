@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=1">
+  <link rel="stylesheet" href="./styles.css?v=2">
   <script defer src="./words.js?v=1"></script>
-  <script defer src="./app.js?v=2"></script>
+  <script defer src="./app.js?v=3"></script>
 </head>
 <body>
 <a class="skip" href="#content">انتقل إلى المحتوى</a>
@@ -52,6 +52,7 @@
         <div class="step"><b>02 · Spell it</b><strong>تهجّأها</strong><span>اذكر الحروف حرفًا حرفًا.</span></div>
         <div class="step"><b>03 · Seal it</b><strong>اختم بها</strong><span>أعِد نطق الكلمة بثقة.</span></div>
       </div>
+      <div class="quick-start"><div><strong>⚡ تحدّي الخمس كلمات</strong><p>تدريب قصير على ٥ كلمات عشوائية، مع تلميحات وتصحيح وفرصة ثانية بعد الخطأ.</p></div><button type="button" class="primary-btn" data-action="quick-five">ابدأ التدريب السريع ←</button></div>
       <div class="study-toolbar">
         <label>المجموعة
           <select id="study-unit" aria-label="اختر مجموعة الكلمات">
@@ -65,7 +66,7 @@
           <input id="study-search" type="search" placeholder="مثال: Beautiful أو جميل..." autocomplete="off">
         </label>
       </div>
-      <div class="list-key">اضغط <strong>🔊</strong> لسماع الكلمة، أو <strong>🔡</strong> لسماع الحروف. رمز <strong>⭐</strong> لحفظ الكلمات التي تريد مراجعتها.</div>
+      <div class="list-key">اضغط <strong>🔊</strong> لسماع الكلمة، أو <strong>🐢</strong> لنطق بطيء، أو <strong>🔡</strong> لسماع الحروف. رمز <strong>⭐</strong> لحفظ الكلمات التي تريد مراجعتها.</div>
       <div class="word-grid" id="study-list"></div>
     </section>
     <section class="view" id="view-practice" aria-label="تدريب الكتابة" hidden><div id="practice-content"></div></section>
